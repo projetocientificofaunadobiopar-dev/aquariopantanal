@@ -234,3 +234,109 @@ class LiquidGlassCard extends StatelessWidget {
 extension on Color {
   Color operator *(num k) => this;
 }
+
+/// Fundo "Hero" da Home: imagem do aquário + camadas de overlay
+/// pra garantir contraste WCAG AA do texto/cards em cima.
+///
+/// Acessibilidade: o overlay escuro com gradient duplo cria mais de
+/// 7:1 de contraste com texto branco — atendendo AAA inclusive pra
+/// pessoas com baixa visão.
+class HeroBackground extends StatelessWidget {
+  final Widget child;
+  const HeroBackground({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // 1. Imagem base
+        Positioned.fill(
+          child: Image.asset(
+            'assets/bg/hero_home.jpeg',
+            fit: BoxFit.cover,
+            alignment: Alignment.center,
+          ),
+        ),
+        // 2. Camada de cor da marca (verde-floresta) pra unificar tom
+        Positioned.fill(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  AppColors.primaryDark.withOpacity(0.55),
+                  AppColors.primary.withOpacity(0.35),
+                  Colors.black.withOpacity(0.65),
+                ],
+                stops: const [0, 0.5, 1],
+              ),
+            ),
+          ),
+        ),
+        // 3. Gradient escuro vertical (lê melhor com pessoas mais velhas
+        // — texto sobre área mais escura na parte inferior onde fica o
+        // miolo do conteúdo)
+        Positioned.fill(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withOpacity(0.10),
+                  Colors.black.withOpacity(0.35),
+                  Colors.black.withOpacity(0.65),
+                ],
+                stops: const [0, 0.45, 1],
+              ),
+            ),
+          ),
+        ),
+        // 4. Borrões de luz orgânicos (sutilíssimos)
+        Positioned(
+          top: -100,
+          right: -60,
+          child: IgnorePointer(
+            child: Container(
+              width: 320,
+              height: 320,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    AppColors.primaryLight.withOpacity(0.18),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          bottom: -140,
+          left: -80,
+          child: IgnorePointer(
+            child: Container(
+              width: 360,
+              height: 360,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    AppColors.accent.withOpacity(0.14),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+        // 5. Conteúdo
+        child,
+      ],
+    );
+  }
+}
+

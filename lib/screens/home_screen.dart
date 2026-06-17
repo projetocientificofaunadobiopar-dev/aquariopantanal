@@ -20,8 +20,8 @@ class HomeScreen extends StatelessWidget {
 
     return Scaffold(
       drawer: const AppDrawer(),
-      backgroundColor: Colors.transparent,
-      body: LiquidBackground(
+      backgroundColor: Colors.black,
+      body: HeroBackground(
         child: SafeArea(
           child: LayoutBuilder(
             builder: (ctx, c) {
@@ -33,9 +33,9 @@ class HomeScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const _TopBar(),
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 32),
                     _WelcomeHeader(s: s),
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 36),
                     const _Hairline(),
                     const SizedBox(height: 28),
                     const PwaInstallBanner(),
@@ -80,32 +80,32 @@ class _TopBar extends StatelessWidget {
       children: [
         Builder(
           builder: (ctx) => Material(
-            color: Colors.white.withOpacity(0.45),
+            color: Colors.white.withOpacity(0.18),
             shape: const CircleBorder(),
             clipBehavior: Clip.antiAlias,
             child: InkWell(
               onTap: () => Scaffold.of(ctx).openDrawer(),
               child: const SizedBox(
-                width: 44,
-                height: 44,
-                child: Icon(Icons.menu_rounded),
+                width: 46,
+                height: 46,
+                child: Icon(Icons.menu_rounded, color: Colors.white),
               ),
             ),
           ),
         ),
         const SizedBox(width: 12),
         Container(
-          width: 40,
-          height: 40,
+          width: 42,
+          height: 42,
           decoration: BoxDecoration(
             gradient: const LinearGradient(
               colors: [AppColors.primary, AppColors.primaryLight],
             ),
-            borderRadius: BorderRadius.circular(13),
+            borderRadius: BorderRadius.circular(14),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withOpacity(0.35),
-                blurRadius: 14,
+                color: AppColors.primary.withOpacity(0.5),
+                blurRadius: 16,
                 offset: const Offset(0, 6),
               ),
             ],
@@ -113,7 +113,7 @@ class _TopBar extends StatelessWidget {
           child: const Icon(Icons.water_drop_rounded,
               color: Colors.white, size: 22),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 12),
         const Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -121,6 +121,7 @@ class _TopBar extends StatelessWidget {
               Text(
                 'BIOPARQUE',
                 style: TextStyle(
+                  color: Colors.white70,
                   fontSize: 10.5,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 2.2,
@@ -129,7 +130,8 @@ class _TopBar extends StatelessWidget {
               Text(
                 'Pantanal',
                 style: TextStyle(
-                  fontSize: 18,
+                  color: Colors.white,
+                  fontSize: 19,
                   fontWeight: FontWeight.w800,
                   height: 1,
                   letterSpacing: -0.3,
@@ -138,8 +140,8 @@ class _TopBar extends StatelessWidget {
             ],
           ),
         ),
-        const LangSwitch(),
-        const ThemeToggle(),
+        const LangSwitch(foregroundColor: Colors.white),
+        const ThemeToggle(foregroundColor: Colors.white),
       ],
     );
   }
@@ -151,51 +153,65 @@ class _WelcomeHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
             Container(
-              width: 30,
-              height: 2,
+              width: 32,
+              height: 2.5,
               decoration: BoxDecoration(
-                color: scheme.primary,
+                color: AppColors.accent,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 12),
             Expanded(
               child: Text(
                 s.welcomeOver,
-                style: TextStyle(
-                  color: scheme.primary,
+                style: const TextStyle(
+                  color: AppColors.accent,
                   fontWeight: FontWeight.w800,
-                  fontSize: 11,
+                  fontSize: 11.5,
                   letterSpacing: 1.5,
                 ),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 16),
+        // Título grande — contraste máximo (branco puro sobre overlay escuro)
         Text(
           s.welcomeTitle,
-          style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                fontSize: 34,
-                height: 1.1,
-                letterSpacing: -0.8,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 38,
+            height: 1.08,
+            letterSpacing: -1,
+            fontWeight: FontWeight.w800,
+            // Sombra leve pra reforçar legibilidade caso parte da imagem
+            // por trás fique clara em algum momento.
+            shadows: [
+              Shadow(
+                blurRadius: 12,
+                color: Colors.black54,
+                offset: Offset(0, 2),
               ),
+            ],
+          ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
         Text(
           s.welcomeSubtitle,
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: scheme.onSurface.withOpacity(0.7),
-                height: 1.55,
-                fontSize: 15,
-              ),
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.92),
+            fontSize: 16,
+            height: 1.55,
+            shadows: const [
+              Shadow(blurRadius: 8, color: Colors.black38),
+            ],
+          ),
         ),
       ],
     );
@@ -207,26 +223,20 @@ class _Hairline extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color =
-        Theme.of(context).colorScheme.onSurface.withOpacity(0.12);
-    return Row(
-      children: [
-        Expanded(
-          child: Container(
-            height: 1,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [color.withOpacity(0), color, color.withOpacity(0)],
-              ),
-            ),
-          ),
+    final color = Colors.white.withOpacity(0.25);
+    return Container(
+      height: 1,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [color.withOpacity(0), color, color.withOpacity(0)],
         ),
-      ],
+      ),
     );
   }
 }
 
-/// Card de ação base: ícone refinado em círculo outline + título + microcopy + CTA.
+/// Card de ação com Liquid Glass refinado, otimizado para legibilidade
+/// sobre o fundo escuro (texto branco + ícone em círculo outline).
 class _ActionCard extends StatelessWidget {
   final IconData icon;
   final Color accent;
@@ -254,7 +264,8 @@ class _ActionCard extends StatelessWidget {
       onTap: onTap,
       radiusVariant: radiusVariant,
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 22),
-      tint: accent,
+      tint: Colors.white,
+      blur: 28,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -268,7 +279,7 @@ class _ActionCard extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(
                       horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: accent.withOpacity(0.15),
+                    color: accent.withOpacity(0.22),
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
@@ -283,27 +294,25 @@ class _ActionCard extends StatelessWidget {
                 ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 22),
           Text(
             title,
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 22,
-                  height: 1.15,
-                  letterSpacing: -0.3,
-                ),
+            style: const TextStyle(
+              fontWeight: FontWeight.w800,
+              fontSize: 22,
+              height: 1.15,
+              letterSpacing: -0.3,
+              color: Colors.white,
+            ),
           ),
           const SizedBox(height: 10),
           Text(
             description,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  height: 1.55,
-                  fontSize: 14,
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withOpacity(0.72),
-                ),
+            style: TextStyle(
+              height: 1.55,
+              fontSize: 14.5,
+              color: Colors.white.withOpacity(0.88),
+            ),
           ),
           const Spacer(),
           const SizedBox(height: 22),
@@ -314,23 +323,30 @@ class _ActionCard extends StatelessWidget {
                 style: TextStyle(
                   color: accent,
                   fontWeight: FontWeight.w800,
-                  fontSize: 13.5,
+                  fontSize: 14,
                   letterSpacing: 0.4,
                 ),
               ),
               const SizedBox(width: 8),
               Container(
-                width: 28,
-                height: 28,
+                width: 30,
+                height: 30,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: accent.withOpacity(0.14),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.arrow_forward_rounded,
                   color: accent,
-                  size: 15,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: accent.withOpacity(0.4),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.arrow_forward_rounded,
+                  color: Colors.white,
+                  size: 16,
                 ),
               ),
             ],
@@ -341,7 +357,7 @@ class _ActionCard extends StatelessWidget {
   }
 }
 
-/// Ícone refinado: círculo outline com ícone vazado dentro (mais "luxury").
+/// Ícone refinado: círculo glass com ícone vazado dentro.
 class _RefinedIcon extends StatelessWidget {
   final IconData icon;
   final Color color;
@@ -350,14 +366,14 @@ class _RefinedIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 56,
-      height: 56,
+      width: 58,
+      height: 58,
       decoration: BoxDecoration(
-        color: color.withOpacity(0.10),
+        color: Colors.white.withOpacity(0.12),
         shape: BoxShape.circle,
-        border: Border.all(color: color.withOpacity(0.35), width: 1.2),
+        border: Border.all(color: Colors.white.withOpacity(0.35), width: 1.5),
       ),
-      child: Icon(icon, color: color, size: 26),
+      child: Icon(icon, color: color, size: 28),
     );
   }
 }
@@ -368,10 +384,9 @@ class _ConhecerFaunaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     return _ActionCard(
       icon: Icons.spa_outlined,
-      accent: scheme.primary,
+      accent: AppColors.primaryLight,
       title: s.acConhecerTitle,
       description: s.acConhecerSub,
       cta: s.acConhecerCTA,
@@ -387,10 +402,9 @@ class _ScanCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     return _ActionCard(
       icon: Icons.qr_code_scanner_outlined,
-      accent: scheme.secondary,
+      accent: AppColors.accent,
       title: s.acScanTitle,
       description: s.acScanSub,
       cta: s.acScanCTA,
@@ -413,17 +427,15 @@ class _FooterHint extends StatelessWidget {
         child: Column(
           children: [
             const _Hairline(),
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
             Text(
               s.subtituloFauna,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 12.5,
+                fontSize: 13,
+                fontStyle: FontStyle.italic,
                 letterSpacing: 0.3,
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withOpacity(0.55),
+                color: Colors.white.withOpacity(0.75),
               ),
             ),
           ],
