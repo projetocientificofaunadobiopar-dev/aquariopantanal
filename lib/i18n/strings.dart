@@ -286,17 +286,31 @@ class Strings {
         es: 'Accesibilidad',
       );
   String get instalarApp => _t(
-        pt: 'Instalar app',
-        en: 'Install app',
-        es: 'Instalar app',
+        pt: 'Instalar o app',
+        en: 'Install the app',
+        es: 'Instalar la app',
       );
   String get instalarAppDesc => _t(
         pt: 'Adicione à tela inicial para acesso rápido, mesmo offline.',
-        en:
-            'Add to your home screen for quick access, even offline.',
+        en: 'Add to your home screen for quick access, even offline.',
         es:
             'Añade a la pantalla de inicio para acceso rápido, incluso sin conexión.',
       );
+  String get instalarIosTitulo => _t(
+        pt: 'Adicionar à Tela de Início',
+        en: 'Add to Home Screen',
+        es: 'Añadir a la pantalla de inicio',
+      );
+  String get instalarIosInstr => _t(
+        pt:
+            '1. Toque no ícone de compartilhar abaixo\n2. Role e toque em "Adicionar à Tela de Início"\n3. Confirme em "Adicionar"',
+        en:
+            '1. Tap the share icon below\n2. Scroll and tap "Add to Home Screen"\n3. Confirm by tapping "Add"',
+        es:
+            '1. Toca el ícono compartir abajo\n2. Desplázate y toca "Añadir a pantalla de inicio"\n3. Confirma tocando "Añadir"',
+      );
+  String get entendi =>
+      _t(pt: 'Entendi', en: 'Got it', es: 'Entendido');
   String get agoraNao =>
       _t(pt: 'Agora não', en: 'Not now', es: 'Ahora no');
   String get instalar =>

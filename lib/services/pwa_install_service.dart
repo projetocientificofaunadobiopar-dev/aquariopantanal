@@ -11,11 +11,33 @@ external JSFunction? _installFn;
 @JS('__pwaIsStandalone')
 external JSFunction? _isStandaloneFn;
 
+enum PwaPlatform { android, ios, desktop, other }
+
 class PwaInstallService {
   PwaInstallService._();
   static final PwaInstallService instance = PwaInstallService._();
 
   static const _dismissKey = 'bp_pwa_dismissed_at';
+  // 24h em milissegundos
+  static const _dismissDuration = 24 * 60 * 60 * 1000;
+
+  /// Detecta a plataforma pra mostrar instruções específicas.
+  PwaPlatform get platform {
+    if (!kIsWeb) return PwaPlatform.other;
+    final ua = web.window.navigator.userAgent.toLowerCase();
+    if (ua.contains('iphone') ||
+        ua.contains('ipad') ||
+        ua.contains('ipod')) {
+      return PwaPlatform.ios;
+    }
+    if (ua.contains('android')) return PwaPlatform.android;
+    if (ua.contains('windows') ||
+        ua.contains('macintosh') ||
+        ua.contains('linux')) {
+      return PwaPlatform.desktop;
+    }
+    return PwaPlatform.other;
+  }
 
   bool get canInstall {
     if (!kIsWeb) return false;
@@ -47,11 +69,8 @@ class PwaInstallService {
     if (stored == null) return false;
     final ts = int.tryParse(stored);
     if (ts == null) return false;
-    final dias = DateTime.now()
-        .difference(DateTime.fromMillisecondsSinceEpoch(ts))
-        .inDays;
-    // Mostra de novo depois de 7 dias
-    return dias < 7;
+    final agora = DateTime.now().millisecondsSinceEpoch;
+    return (agora - ts) < _dismissDuration;
   }
 
   void dispensar() {
@@ -60,5 +79,11 @@ class PwaInstallService {
       _dismissKey,
       DateTime.now().millisecondsSinceEpoch.toString(),
     );
+  }
+
+  /// Apaga o cooldown de dispensa (forçar mostrar de novo).
+  void resetar() {
+    if (!kIsWeb) return;
+    web.window.localStorage.removeItem(_dismissKey);
   }
 }
