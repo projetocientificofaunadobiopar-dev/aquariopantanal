@@ -6,7 +6,6 @@ import 'app_icons.dart';
 
 import '../i18n/strings.dart';
 import '../models/especie.dart';
-import '../providers/auth_provider.dart';
 import '../providers/locale_provider.dart';
 import '../providers/text_scale_provider.dart';
 import '../providers/theme_provider.dart';
@@ -27,7 +26,6 @@ class AppDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     final loc = context.watch<LocaleProvider>().locale;
     final s = Strings(loc);
-    final auth = context.watch<AuthProvider>();
     final scheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -91,20 +89,8 @@ class AppDrawer extends StatelessWidget {
                       active: active,
                     );
                   }),
-                  // Acesso ao admin só aparece se já estiver logado.
-                  // Login NÃO aparece no menu — acesso só via URL /login direta.
-                  if (auth.isLogged) ...[
-                    const SizedBox(height: 8),
-                    _section(s.areaRestrita),
-                    _MenuTile(
-                      icon: AppIcons.sliders,
-                      label: s.admin,
-                      onTap: () {
-                        close();
-                        context.push('/admin');
-                      },
-                    ),
-                  ],
+                  // Acesso ao admin e login NÃO aparecem no menu.
+                  // Acesso somente via URL direta /#/login → /#/admin.
                 ],
               ),
             ),
