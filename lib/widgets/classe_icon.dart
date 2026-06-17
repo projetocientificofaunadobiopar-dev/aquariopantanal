@@ -1,53 +1,76 @@
 import 'package:flutter/material.dart';
 
 import '../models/especie.dart';
-import 'app_icons.dart';
 
 class ClasseIconData {
-  final IconData icon;
+  final String asset;
   final Color color;
-  const ClasseIconData(this.icon, this.color);
+  const ClasseIconData(this.asset, this.color);
 
   static ClasseIconData of(ClasseTaxonomica c) {
     switch (c) {
       case ClasseTaxonomica.mamifero:
-        return const ClasseIconData(AppIcons.paw, Color(0xFFB07B45));
+        return const ClasseIconData(
+            'assets/classes/mamifero.png', Color(0xFFB07B45));
       case ClasseTaxonomica.reptil:
-        return const ClasseIconData(AppIcons.staffSnake, Color(0xFF6F9E3D));
+        return const ClasseIconData(
+            'assets/classes/reptil.png', Color(0xFF6F9E3D));
       case ClasseTaxonomica.anfibio:
-        return const ClasseIconData(AppIcons.frog, Color(0xFF3B9B7E));
+        return const ClasseIconData(
+            'assets/classes/anfibio.png', Color(0xFF3B9B7E));
       case ClasseTaxonomica.peixe:
-        return const ClasseIconData(AppIcons.fish, Color(0xFF2A86C9));
+        return const ClasseIconData(
+            'assets/classes/peixe.png', Color(0xFF2A86C9));
       case ClasseTaxonomica.ave:
-        return const ClasseIconData(AppIcons.dove, Color(0xFFD96B3F));
+        return const ClasseIconData(
+            'assets/classes/ave.png', Color(0xFFD96B3F));
       case ClasseTaxonomica.invertebrado:
-        return const ClasseIconData(AppIcons.spider, Color(0xFF8E4FBF));
+        return const ClasseIconData(
+            'assets/classes/invertebrado.png', Color(0xFF8E4FBF));
     }
   }
 }
 
+/// Ícone PNG da classe taxonômica (com cor original do desenho).
 class ClasseIcon extends StatelessWidget {
   final ClasseTaxonomica classe;
   final double size;
   final Color? color;
+
   const ClasseIcon({
     super.key,
     required this.classe,
-    this.size = 18,
+    this.size = 22,
     this.color,
   });
 
   @override
   Widget build(BuildContext context) {
     final data = ClasseIconData.of(classe);
-    return Icon(data.icon, size: size, color: color ?? data.color);
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Image.asset(
+        data.asset,
+        fit: BoxFit.contain,
+        // Se um color customizado for passado (ex: branco em fundo escuro),
+        // pinta o ícone com srcIn pra ficar monocromático.
+        color: color,
+        colorBlendMode: color != null ? BlendMode.srcIn : null,
+      ),
+    );
   }
 }
 
+/// Avatar circular com a cor da classe + ícone PNG branco em cima.
 class ClasseAvatar extends StatelessWidget {
   final ClasseTaxonomica classe;
   final double size;
+
+  /// `soft = true` → fundo translúcido na cor da classe + ícone colorido.
+  /// `soft = false` (padrão) → fundo sólido na cor da classe + ícone branco.
   final bool soft;
+
   const ClasseAvatar({
     super.key,
     required this.classe,
@@ -67,12 +90,14 @@ class ClasseAvatar extends StatelessWidget {
         shape: BoxShape.circle,
         border: soft
             ? null
-            : Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+            : Border.all(color: Colors.white.withOpacity(0.25), width: 1),
       ),
-      child: Icon(
-        data.icon,
-        size: size * 0.5,
-        color: soft ? data.color : Colors.white,
+      padding: EdgeInsets.all(size * 0.18),
+      child: Image.asset(
+        data.asset,
+        fit: BoxFit.contain,
+        color: soft ? null : Colors.white,
+        colorBlendMode: soft ? null : BlendMode.srcIn,
       ),
     );
   }

@@ -77,7 +77,11 @@ class AppDrawer extends StatelessWidget {
                     final data = ClasseIconData.of(c);
                     final active = categoriaSelecionada == c;
                     return _MenuTile(
-                      icon: data.icon,
+                      iconWidget: SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: ClasseIcon(classe: c, size: 22),
+                      ),
                       iconColor: data.color,
                       label: c.label(loc),
                       onTap: () {
@@ -204,13 +208,15 @@ class _Brand extends StatelessWidget {
 }
 
 class _MenuTile extends StatelessWidget {
-  final IconData icon;
+  final IconData? icon;
+  final Widget? iconWidget;
   final Color? iconColor;
   final String label;
   final VoidCallback onTap;
   final bool active;
   const _MenuTile({
-    required this.icon,
+    this.icon,
+    this.iconWidget,
     this.iconColor,
     required this.label,
     required this.onTap,
@@ -236,15 +242,17 @@ class _MenuTile extends StatelessWidget {
                 Container(
                   width: 36,
                   height: 36,
+                  alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: (iconColor ?? scheme.primary).withOpacity(0.12),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(
-                    icon,
-                    size: 18,
-                    color: iconColor ?? scheme.primary,
-                  ),
+                  child: iconWidget ??
+                      Icon(
+                        icon,
+                        size: 18,
+                        color: iconColor ?? scheme.primary,
+                      ),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
