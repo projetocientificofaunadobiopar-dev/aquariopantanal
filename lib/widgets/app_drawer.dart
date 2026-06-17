@@ -53,7 +53,7 @@ class AppDrawer extends StatelessWidget {
                     },
                   ),
                   _MenuTile(
-                    icon: Icons.spa_rounded,
+                    icon: Icons.pets_rounded,
                     label: s.acConhecerTitle,
                     onTap: () {
                       onSelectCategoria?.call(null);
