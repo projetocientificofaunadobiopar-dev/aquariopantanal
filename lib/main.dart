@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'config/supabase_config.dart';
 import 'providers/auth_provider.dart';
 import 'providers/locale_provider.dart';
+import 'providers/text_scale_provider.dart';
 import 'providers/theme_provider.dart';
 import 'routes/app_router.dart';
 import 'theme/app_theme.dart';
@@ -32,11 +33,13 @@ class BioparqueApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => LocaleProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => TextScaleProvider()),
       ],
       child: Builder(
         builder: (ctx) {
           final router = buildRouter(ctx.read<AuthProvider>());
           final mode = ctx.watch<ThemeProvider>().mode;
+          final scale = ctx.watch<TextScaleProvider>().scale;
           return MaterialApp.router(
             title: 'Bioparque Pantanal',
             debugShowCheckedModeBanner: false,
@@ -44,6 +47,13 @@ class BioparqueApp extends StatelessWidget {
             darkTheme: AppTheme.dark(),
             themeMode: mode,
             routerConfig: router,
+            builder: (ctx, child) {
+              return MediaQuery(
+                data: MediaQuery.of(ctx)
+                    .copyWith(textScaler: TextScaler.linear(scale)),
+                child: child!,
+              );
+            },
           );
         },
       ),

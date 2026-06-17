@@ -8,6 +8,7 @@ import '../i18n/strings.dart';
 import '../models/especie.dart';
 import '../providers/auth_provider.dart';
 import '../providers/locale_provider.dart';
+import '../providers/text_scale_provider.dart';
 import '../providers/theme_provider.dart';
 import '../theme/app_theme.dart';
 import 'classe_icon.dart';
@@ -53,6 +54,14 @@ class AppDrawer extends StatelessWidget {
                       close();
                     },
                     active: categoriaSelecionada == null,
+                  ),
+                  _MenuTile(
+                    icon: Icons.qr_code_scanner_rounded,
+                    label: s.escanear,
+                    onTap: () {
+                      close();
+                      context.push('/scan');
+                    },
                   ),
                   _MenuTile(
                     icon: AppIcons.circleInfo,
@@ -102,6 +111,7 @@ class AppDrawer extends StatelessWidget {
               ),
             ),
             const Divider(height: 1),
+            _TextScaleRow(s: s),
             _BottomRow(s: s),
           ],
         ),
@@ -259,6 +269,61 @@ class _MenuTile extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _TextScaleRow extends StatelessWidget {
+  final Strings s;
+  const _TextScaleRow({required this.s});
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.watch<TextScaleProvider>();
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 12, 16, 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              s.tamanhoTexto,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: scheme.onSurface.withOpacity(0.7),
+              ),
+            ),
+          ),
+          IconButton(
+            tooltip: 'A-',
+            onPressed: p.podeDiminuir
+                ? () => context.read<TextScaleProvider>().diminuir()
+                : null,
+            icon: const Text('A',
+                style: TextStyle(
+                    fontWeight: FontWeight.w800, fontSize: 13)),
+          ),
+          Container(
+            width: 36,
+            alignment: Alignment.center,
+            child: Text(
+              '${(p.scale * 100).round()}%',
+              style: const TextStyle(
+                  fontSize: 12, fontWeight: FontWeight.w700),
+            ),
+          ),
+          IconButton(
+            tooltip: 'A+',
+            onPressed: p.podeAumentar
+                ? () => context.read<TextScaleProvider>().aumentar()
+                : null,
+            icon: const Text('A',
+                style: TextStyle(
+                    fontWeight: FontWeight.w800, fontSize: 19)),
+          ),
+        ],
       ),
     );
   }

@@ -8,7 +8,32 @@ import '../screens/admin/especie_form.dart';
 import '../screens/ficha_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/login_screen.dart';
+import '../screens/scan_screen.dart';
 import '../screens/sobre_screen.dart';
+
+CustomTransitionPage<T> _fade<T>(Widget child, GoRouterState st) {
+  return CustomTransitionPage<T>(
+    key: st.pageKey,
+    child: child,
+    transitionDuration: const Duration(milliseconds: 280),
+    reverseTransitionDuration: const Duration(milliseconds: 220),
+    transitionsBuilder: (ctx, anim, sec, c) {
+      final curved = CurvedAnimation(
+        parent: anim,
+        curve: Curves.easeOutCubic,
+        reverseCurve: Curves.easeInCubic,
+      );
+      final slide = Tween<Offset>(
+        begin: const Offset(0, 0.025),
+        end: Offset.zero,
+      ).animate(curved);
+      return FadeTransition(
+        opacity: curved,
+        child: SlideTransition(position: slide, child: c),
+      );
+    },
+  );
+}
 
 GoRouter buildRouter(AuthProvider auth) {
   return GoRouter(
@@ -25,39 +50,51 @@ GoRouter buildRouter(AuthProvider auth) {
     routes: [
       GoRoute(
         path: '/',
-        builder: (_, __) => const HomeScreen(),
+        pageBuilder: (_, st) => _fade(const HomeScreen(), st),
       ),
       GoRoute(
         path: '/especie/:slug',
-        builder: (ctx, st) => FichaScreen(
-          slugOrId: st.pathParameters['slug']!,
-          inicial: st.extra is Especie ? st.extra as Especie : null,
+        pageBuilder: (ctx, st) => _fade(
+          FichaScreen(
+            slugOrId: st.pathParameters['slug']!,
+            inicial: st.extra is Especie ? st.extra as Especie : null,
+          ),
+          st,
         ),
       ),
-      // Compatibilidade: rota antiga /ficha/:id continua funcionando
       GoRoute(
         path: '/ficha/:id',
-        builder: (ctx, st) => FichaScreen(
-          slugOrId: st.pathParameters['id']!,
-          inicial: st.extra is Especie ? st.extra as Especie : null,
+        pageBuilder: (ctx, st) => _fade(
+          FichaScreen(
+            slugOrId: st.pathParameters['id']!,
+            inicial: st.extra is Especie ? st.extra as Especie : null,
+          ),
+          st,
         ),
       ),
       GoRoute(
         path: '/sobre',
-        builder: (_, __) => const SobreScreen(),
+        pageBuilder: (_, st) => _fade(const SobreScreen(), st),
+      ),
+      GoRoute(
+        path: '/scan',
+        pageBuilder: (_, st) => _fade(const ScanScreen(), st),
       ),
       GoRoute(
         path: '/login',
-        builder: (_, __) => const LoginScreen(),
+        pageBuilder: (_, st) => _fade(const LoginScreen(), st),
       ),
       GoRoute(
         path: '/admin',
-        builder: (_, __) => const AdminDashboard(),
+        pageBuilder: (_, st) => _fade(const AdminDashboard(), st),
         routes: [
           GoRoute(
             path: 'form',
-            builder: (ctx, st) => EspecieForm(
-              editar: st.extra is Especie ? st.extra as Especie : null,
+            pageBuilder: (ctx, st) => _fade(
+              EspecieForm(
+                editar: st.extra is Especie ? st.extra as Especie : null,
+              ),
+              st,
             ),
           ),
         ],

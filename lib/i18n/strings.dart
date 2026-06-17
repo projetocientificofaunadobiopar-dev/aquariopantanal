@@ -196,6 +196,78 @@ class Strings {
         es:
             'El Biopark Pantanal es el acuario de agua dulce más grande del mundo, en Campo Grande/MS, Brasil. Dedicado a la educación ambiental y a la preservación de la fauna del Pantanal.',
       );
+  String get tamanhoTexto =>
+      _t(pt: 'Tamanho do texto', en: 'Text size', es: 'Tamaño del texto');
+  String get acessibilidade => _t(
+        pt: 'Acessibilidade',
+        en: 'Accessibility',
+        es: 'Accesibilidad',
+      );
+  String get instalarApp => _t(
+        pt: 'Instalar app',
+        en: 'Install app',
+        es: 'Instalar app',
+      );
+  String get instalarAppDesc => _t(
+        pt: 'Adicione à tela inicial para acesso rápido, mesmo offline.',
+        en:
+            'Add to your home screen for quick access, even offline.',
+        es:
+            'Añade a la pantalla de inicio para acceso rápido, incluso sin conexión.',
+      );
+  String get agoraNao =>
+      _t(pt: 'Agora não', en: 'Not now', es: 'Ahora no');
+  String get instalar =>
+      _t(pt: 'Instalar', en: 'Install', es: 'Instalar');
+  String get qrCode => _t(pt: 'QR Code', en: 'QR Code', es: 'QR Code');
+  String get escanear =>
+      _t(pt: 'Escanear QR', en: 'Scan QR', es: 'Escanear QR');
+  String get scanInstrucao => _t(
+        pt: 'Aponte a câmera para o QR do tanque',
+        en: 'Point the camera at the tank\'s QR code',
+        es: 'Apunta la cámara al QR del tanque',
+      );
+  String get camPermissaoNegada => _t(
+        pt: 'Permissão de câmera negada',
+        en: 'Camera permission denied',
+        es: 'Permiso de cámara denegado',
+      );
+  String get camIndisponivel => _t(
+        pt: 'Câmera indisponível neste dispositivo',
+        en: 'Camera not available on this device',
+        es: 'Cámara no disponible en este dispositivo',
+      );
+  String get qrNaoReconhecido => _t(
+        pt: 'QR não reconhecido',
+        en: 'QR not recognized',
+        es: 'QR no reconocido',
+      );
+  String get alternarCamera => _t(
+        pt: 'Alternar câmera',
+        en: 'Switch camera',
+        es: 'Cambiar cámara',
+      );
+  String get lanterna => _t(
+        pt: 'Lanterna',
+        en: 'Flashlight',
+        es: 'Linterna',
+      );
+  String get baixarQr => _t(
+        pt: 'Baixar QR',
+        en: 'Download QR',
+        es: 'Descargar QR',
+      );
+  String get copiarLink => _t(
+        pt: 'Copiar link',
+        en: 'Copy link',
+        es: 'Copiar enlace',
+      );
+  String get linkCopiado => _t(
+        pt: 'Link copiado!',
+        en: 'Link copied!',
+        es: '¡Enlace copiado!',
+      );
+
   String get sobreCreditos => _t(
         pt: 'Desenvolvido com ❤ para o Bioparque Pantanal',
         en: 'Built with ❤ for Pantanal Biopark',

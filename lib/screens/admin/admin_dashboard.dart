@@ -9,6 +9,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/locale_provider.dart';
 import '../../services/supabase_service.dart';
 import '../../widgets/classe_icon.dart';
+import '../../widgets/qr_modal.dart';
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -373,7 +374,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 4),
+              IconButton(
+                tooltip: s.qrCode,
+                icon: const Icon(Icons.qr_code_rounded),
+                onPressed: () => QrModal.abrir(context, e),
+              ),
               IconButton(
                 tooltip: s.excluir,
                 icon: const Icon(Icons.delete_outline_rounded,

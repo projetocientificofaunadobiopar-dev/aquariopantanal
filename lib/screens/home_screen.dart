@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
@@ -11,7 +12,9 @@ import '../theme/app_theme.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/classe_icon.dart';
 import '../widgets/especie_card.dart';
+import '../widgets/especie_card_skeleton.dart';
 import '../widgets/lang_switch.dart';
+import '../widgets/pwa_install_banner.dart';
 
 const List<Map<String, dynamic>> _demoEspecies = [
   {
@@ -199,6 +202,7 @@ class _HomeScreenState extends State<HomeScreen> {
         categoriaSelecionada: _filtroClasse,
         onSelectCategoria: (c) => setState(() => _filtroClasse = c),
       ),
+      floatingActionButton: _ScanFab(s: s),
       body: SafeArea(
         bottom: false,
         child: RefreshIndicator(
@@ -210,10 +214,12 @@ class _HomeScreenState extends State<HomeScreen> {
               final all = snap.data ?? [];
               final list = _filtrar(all, loc);
 
-              return CustomScrollView(
+              return AnimationLimiter(
+                child: CustomScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 slivers: [
                   _Header(s: s, total: all.length),
+                  const SliverToBoxAdapter(child: PwaInstallBanner()),
                   SliverPadding(
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
                     sliver: SliverToBoxAdapter(
@@ -279,14 +285,26 @@ class _HomeScreenState extends State<HomeScreen> {
                               mainAxisSpacing: 16,
                             ),
                             delegate: SliverChildBuilderDelegate(
-                              (_, i) => EspecieCard(
-                                especie: list[i],
-                                loc: loc,
-                                onTap: () {
-                                  final slug = list[i].slug ?? list[i].id;
-                                  context.push('/especie/$slug',
-                                      extra: list[i]);
-                                },
+                              (_, i) => AnimationConfiguration.staggeredGrid(
+                                position: i,
+                                duration:
+                                    const Duration(milliseconds: 450),
+                                columnCount: cross,
+                                child: ScaleAnimation(
+                                  scale: 0.92,
+                                  child: FadeInAnimation(
+                                    child: EspecieCard(
+                                      especie: list[i],
+                                      loc: loc,
+                                      onTap: () {
+                                        final slug = list[i].slug ??
+                                            list[i].id;
+                                        context.push('/especie/$slug',
+                                            extra: list[i]);
+                                      },
+                                    ),
+                                  ),
+                                ),
                               ),
                               childCount: list.length,
                             ),
@@ -295,6 +313,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                 ],
+                ),
               );
             },
           ),
@@ -318,16 +337,7 @@ class _HomeScreenState extends State<HomeScreen> {
               mainAxisSpacing: 16,
             ),
             delegate: SliverChildBuilderDelegate(
-              (_, __) => Shimmer.fromColors(
-                baseColor: scheme.surfaceContainerHighest,
-                highlightColor: scheme.surface,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: scheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(22),
-                  ),
-                ),
-              ),
+              (_, __) => const EspecieCardSkeleton(),
               childCount: cross * 2,
             ),
           );
@@ -662,6 +672,37 @@ class _ErrorState extends StatelessWidget {
             Text(msg, textAlign: TextAlign.center),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ScanFab extends StatelessWidget {
+  final Strings s;
+  const _ScanFab({required this.s});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: scheme.primary.withOpacity(0.45),
+            blurRadius: 18,
+            spreadRadius: 1,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: FloatingActionButton.large(
+        backgroundColor: scheme.primary,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        tooltip: s.escanear,
+        onPressed: () => context.push('/scan'),
+        child: const Icon(Icons.qr_code_scanner_rounded, size: 32),
       ),
     );
   }

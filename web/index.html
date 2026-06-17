@@ -36,6 +36,25 @@
     if (!window.PasskeyAuthenticator) {
       window.PasskeyAuthenticator = { init: function(){}, available: function(){return false;} };
     }
+    // PWA install prompt
+    window.__pwaDeferred = null;
+    window.addEventListener('beforeinstallprompt', function(e){
+      e.preventDefault();
+      window.__pwaDeferred = e;
+    });
+    window.__pwaCanInstall = function(){ return !!window.__pwaDeferred; };
+    window.__pwaInstall = async function(){
+      if (!window.__pwaDeferred) return 'unavailable';
+      window.__pwaDeferred.prompt();
+      try {
+        const r = await window.__pwaDeferred.userChoice;
+        window.__pwaDeferred = null;
+        return r && r.outcome ? r.outcome : 'dismissed';
+      } catch (e) { return 'error'; }
+    };
+    window.__pwaIsStandalone = function(){
+      return window.matchMedia && (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true);
+    };
   </script>
 </head>
 <body>
