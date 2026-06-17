@@ -87,9 +87,11 @@ class AppDrawer extends StatelessWidget {
                       active: active,
                     );
                   }),
-                  const SizedBox(height: 8),
-                  _section(s.areaRestrita),
-                  if (auth.isLogged)
+                  // Acesso ao admin só aparece se já estiver logado.
+                  // Login NÃO aparece no menu — acesso só via URL /login direta.
+                  if (auth.isLogged) ...[
+                    const SizedBox(height: 8),
+                    _section(s.areaRestrita),
                     _MenuTile(
                       icon: AppIcons.sliders,
                       label: s.admin,
@@ -97,16 +99,8 @@ class AppDrawer extends StatelessWidget {
                         close();
                         context.push('/admin');
                       },
-                    )
-                  else
-                    _MenuTile(
-                      icon: AppIcons.rightToBracket,
-                      label: s.login,
-                      onTap: () {
-                        close();
-                        context.push('/login');
-                      },
                     ),
+                  ],
                 ],
               ),
             ),
