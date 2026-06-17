@@ -242,10 +242,6 @@ class LiquidGlassCard extends StatelessWidget {
   }
 }
 
-extension on Color {
-  Color operator *(num k) => this;
-}
-
 /// Fundo "Hero" da Home: imagem do aquário + camadas de overlay
 /// pra garantir contraste WCAG AA do texto/cards em cima.
 ///

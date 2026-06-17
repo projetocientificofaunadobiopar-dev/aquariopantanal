@@ -337,11 +337,8 @@ class _BottomRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.watch<ThemeProvider>().mode;
+    final isDark = context.watch<ThemeProvider>().isDark;
     final loc = context.watch<LocaleProvider>().locale;
-    final isDark = theme == ThemeMode.dark ||
-        (theme == ThemeMode.system &&
-            MediaQuery.platformBrightnessOf(context) == Brightness.dark);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),

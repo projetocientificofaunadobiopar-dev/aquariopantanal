@@ -217,8 +217,6 @@ class Strings {
         en: 'Every species tells a Pantanal story.',
         es: 'Cada especie cuenta una historia del Pantanal.',
       );
-  String get fauna2 =>
-      _t(pt: 'Fauna', en: 'Fauna', es: 'Fauna');
   String get nenhumResultado => _t(
         pt: 'Nenhum resultado para este filtro',
         en: 'No results for this filter',

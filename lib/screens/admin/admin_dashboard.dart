@@ -28,7 +28,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   @override
   void initState() {
     super.initState();
-    _future = _svc.listar();
+    _future = _svc.listar().timeout(const Duration(seconds: 8));
   }
 
   @override

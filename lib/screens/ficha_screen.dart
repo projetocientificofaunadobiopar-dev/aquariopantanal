@@ -48,7 +48,9 @@ class _FichaScreenState extends State<FichaScreen>
 
   Future<void> _carregar() async {
     try {
-      final e = await SupabaseService().buscarPorSlugOuId(widget.slugOrId);
+      final e = await SupabaseService()
+          .buscarPorSlugOuId(widget.slugOrId)
+          .timeout(const Duration(seconds: 8));
       if (mounted) setState(() => _e = e);
     } catch (err) {
       if (mounted) setState(() => _erro = err.toString());
