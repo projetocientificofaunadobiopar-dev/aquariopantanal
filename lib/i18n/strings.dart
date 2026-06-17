@@ -152,6 +152,73 @@ class Strings {
         en: 'A guide to the species at Pantanal Biopark',
         es: 'Una guía de las especies del Biopark Pantanal',
       );
+  // ===== Home (boas-vindas) =====
+  String get welcomeOver => _t(
+        pt: 'Olá, viajante 🌿',
+        en: 'Hello, traveler 🌿',
+        es: 'Hola, viajero 🌿',
+      );
+  String get welcomeTitle => _t(
+        pt: 'Bem-vindo ao\nBioparque Pantanal',
+        en: 'Welcome to\nPantanal Biopark',
+        es: 'Bienvenido al\nBiopark Pantanal',
+      );
+  String get welcomeSubtitle => _t(
+        pt:
+            'Uma janela para os mistérios do maior pantanal do mundo. Explore, aprenda e se surpreenda com a fauna que habita esse paraíso.',
+        en:
+            'A window into the mysteries of the world\'s largest wetland. Explore, learn, and be amazed by the fauna that inhabits this paradise.',
+        es:
+            'Una ventana a los misterios del humedal más grande del mundo. Explora, aprende y sorpréndete con la fauna que habita este paraíso.',
+      );
+  String get acConhecerTitle => _t(
+        pt: 'Conhecer a Fauna',
+        en: 'Meet the Fauna',
+        es: 'Conocer la Fauna',
+      );
+  String get acConhecerSub => _t(
+        pt:
+            'Mergulhe no catálogo completo de espécies. Aprenda sobre habitat, dieta, conservação e curiosidades de cada animal do Pantanal.',
+        en:
+            'Dive into the full species catalog. Learn about habitat, diet, conservation and curiosities of each Pantanal animal.',
+        es:
+            'Sumérgete en el catálogo completo de especies. Aprende sobre hábitat, dieta, conservación y curiosidades de cada animal del Pantanal.',
+      );
+  String get acConhecerCTA => _t(
+        pt: 'Explorar espécies',
+        en: 'Explore species',
+        es: 'Explorar especies',
+      );
+  String get acScanTitle => _t(
+        pt: 'Escanear QR Code',
+        en: 'Scan QR Code',
+        es: 'Escanear QR',
+      );
+  String get acScanSub => _t(
+        pt:
+            'Está visitando o aquário? Aponte o celular para os QR Codes em cada tanque e desbloqueie a história do animal à sua frente.',
+        en:
+            'Visiting the aquarium? Point your phone at the QR codes on each tank and unlock the story of the animal in front of you.',
+        es:
+            '¿Visitas el acuario? Apunta el celular a los QR de cada tanque y descubre la historia del animal frente a ti.',
+      );
+  String get acScanCTA => _t(
+        pt: 'Abrir câmera',
+        en: 'Open camera',
+        es: 'Abrir cámara',
+      );
+  String get tituloFauna => _t(
+        pt: 'Catálogo da fauna',
+        en: 'Fauna catalog',
+        es: 'Catálogo de fauna',
+      );
+  String get subtituloFauna => _t(
+        pt: 'Cada espécie conta uma história do Pantanal.',
+        en: 'Every species tells a Pantanal story.',
+        es: 'Cada especie cuenta una historia del Pantanal.',
+      );
+  String get fauna2 =>
+      _t(pt: 'Fauna', en: 'Fauna', es: 'Fauna');
   String get nenhumResultado => _t(
         pt: 'Nenhum resultado para este filtro',
         en: 'No results for this filter',

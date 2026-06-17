@@ -48,10 +48,19 @@ class AppDrawer extends StatelessWidget {
                     icon: AppIcons.house,
                     label: s.inicio,
                     onTap: () {
+                      close();
+                      context.go('/');
+                    },
+                  ),
+                  _MenuTile(
+                    icon: Icons.spa_rounded,
+                    label: s.acConhecerTitle,
+                    onTap: () {
                       onSelectCategoria?.call(null);
                       close();
+                      context.push('/fauna');
                     },
-                    active: categoriaSelecionada == null,
+                    active: categoriaSelecionada == null && onSelectCategoria != null,
                   ),
                   _MenuTile(
                     icon: Icons.qr_code_scanner_rounded,
@@ -83,8 +92,13 @@ class AppDrawer extends StatelessWidget {
                       iconColor: data.color,
                       label: c.label(loc),
                       onTap: () {
-                        onSelectCategoria?.call(c);
-                        close();
+                        if (onSelectCategoria != null) {
+                          onSelectCategoria!(c);
+                          close();
+                        } else {
+                          close();
+                          context.push('/fauna');
+                        }
                       },
                       active: active,
                     );

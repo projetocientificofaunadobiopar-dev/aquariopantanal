@@ -5,6 +5,7 @@ import '../models/especie.dart';
 import '../providers/auth_provider.dart';
 import '../screens/admin/admin_dashboard.dart';
 import '../screens/admin/especie_form.dart';
+import '../screens/fauna_screen.dart';
 import '../screens/ficha_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/login_screen.dart';
@@ -51,6 +52,10 @@ GoRouter buildRouter(AuthProvider auth) {
       GoRoute(
         path: '/',
         pageBuilder: (_, st) => _fade(const HomeScreen(), st),
+      ),
+      GoRoute(
+        path: '/fauna',
+        pageBuilder: (_, st) => _fade(const FaunaScreen(), st),
       ),
       GoRoute(
         path: '/especie/:slug',

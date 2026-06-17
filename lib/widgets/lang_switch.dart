@@ -76,10 +76,7 @@ class ThemeToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final mode = context.watch<ThemeProvider>().mode;
-    final isDark = mode == ThemeMode.dark ||
-        (mode == ThemeMode.system &&
-            MediaQuery.platformBrightnessOf(context) == Brightness.dark);
+    final isDark = context.watch<ThemeProvider>().isDark;
     final fg = foregroundColor ?? Theme.of(context).colorScheme.onSurface;
     return IconButton(
       tooltip: isDark ? 'Modo claro' : 'Modo escuro',
