@@ -4,6 +4,7 @@ import 'package:shimmer/shimmer.dart';
 import '../models/especie.dart';
 import '../providers/locale_provider.dart';
 import 'classe_icon.dart';
+import 'hero_image.dart';
 
 class EspecieCard extends StatefulWidget {
   final Especie especie;
@@ -57,21 +58,18 @@ class _EspecieCardState extends State<EspecieCard> {
                             size: 64,
                             color: scheme.onSurface.withOpacity(0.3)),
                       )
-                    : Hero(
+                    : HeroImage(
                         tag: 'img_${widget.especie.id}',
-                        child: CachedNetworkImage(
-                          imageUrl: widget.especie.imagemUrl!,
-                          fit: BoxFit.cover,
-                          placeholder: (_, __) => Shimmer.fromColors(
-                            baseColor: scheme.surfaceContainerHighest,
-                            highlightColor: scheme.surface,
-                            child: Container(
-                                color: scheme.surfaceContainerHighest),
-                          ),
-                          errorWidget: (_, __, ___) => Container(
-                            color: scheme.surfaceContainerHighest,
-                            child: const Icon(Icons.broken_image, size: 40),
-                          ),
+                        url: widget.especie.imagemUrl!,
+                        placeholder: Shimmer.fromColors(
+                          baseColor: scheme.surfaceContainerHighest,
+                          highlightColor: scheme.surface,
+                          child: Container(
+                              color: scheme.surfaceContainerHighest),
+                        ),
+                        errorWidget: Container(
+                          color: scheme.surfaceContainerHighest,
+                          child: const Icon(Icons.broken_image, size: 40),
                         ),
                       ),
                 Positioned.fill(

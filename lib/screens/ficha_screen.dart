@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -10,6 +9,7 @@ import '../providers/locale_provider.dart';
 import '../services/supabase_service.dart';
 import '../services/tts_service.dart';
 import '../widgets/classe_icon.dart';
+import '../widgets/hero_image.dart';
 import '../widgets/lang_switch.dart';
 
 class FichaScreen extends StatefulWidget {
@@ -147,12 +147,9 @@ class _FichaScreenState extends State<FichaScreen>
                 children: [
                   e.imagemUrl == null
                       ? Container(color: scheme.surfaceContainerHighest)
-                      : Hero(
+                      : HeroImage(
                           tag: 'img_${e.id}',
-                          child: CachedNetworkImage(
-                            imageUrl: e.imagemUrl!,
-                            fit: BoxFit.cover,
-                          ),
+                          url: e.imagemUrl!,
                         ),
                   DecoratedBox(
                     decoration: BoxDecoration(
