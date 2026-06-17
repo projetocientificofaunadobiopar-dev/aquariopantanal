@@ -385,7 +385,7 @@ class _ConhecerFaunaCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _ActionCard(
-      icon: Icons.spa_outlined,
+      icon: Icons.pets_rounded,
       accent: AppColors.primaryLight,
       title: s.acConhecerTitle,
       description: s.acConhecerSub,
@@ -403,7 +403,7 @@ class _ScanCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _ActionCard(
-      icon: Icons.qr_code_scanner_outlined,
+      icon: Icons.qr_code_scanner_rounded,
       accent: AppColors.accent,
       title: s.acScanTitle,
       description: s.acScanSub,

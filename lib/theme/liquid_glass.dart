@@ -150,14 +150,21 @@ class _Blob extends StatelessWidget {
   }
 }
 
-/// Cartão de vidro líquido: blur do fundo + cor translúcida +
-/// borda orgânica + brilho interno sutil.
+/// Cartão de "vidro líquido" estático — sem BackdropFilter pra evitar
+/// jank de scroll em Flutter Web. A aparência de vidro vem de:
+///   - gradiente translúcido duplo (highlight no topo + sombra no fundo)
+///   - borda sutil branca (reflexo)
+///   - sombra externa (profundidade flutuante)
+///   - tint colorido
+///
+/// Não fica idêntico a um blur real, mas evita o custo de GPU e a
+/// renderização entrecortada que o BackdropFilter causava no scroll.
 class LiquidGlassCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
   final int radiusVariant;
   final VoidCallback? onTap;
-  final double blur;
+  final double blur; // mantido pra compatibilidade — ignorado
   final double intensity;
   final Color? tint;
 
@@ -180,39 +187,43 @@ class LiquidGlassCard extends StatelessWidget {
 
     final radius = LiquidGlass.organic(variant: radiusVariant);
 
-    final glassTop = base.withOpacity(dark ? 0.22 : 0.55) * (1);
-    final glassBottom = base.withOpacity(dark ? 0.12 : 0.35);
+    // Gradiente duplo: topo um pouco mais "iluminado", fundo mais escuro.
+    final glassTop = base.withOpacity(dark ? 0.18 : 0.22);
+    final glassBottom = base.withOpacity(dark ? 0.10 : 0.10);
 
-    final body = ClipRRect(
-      borderRadius: radius,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-        child: Container(
-          padding: padding,
-          decoration: BoxDecoration(
-            borderRadius: radius,
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                glassTop,
-                glassBottom,
-              ],
-            ),
-            border: Border.all(
-              color: Colors.white.withOpacity(dark ? 0.10 : 0.55),
-              width: 1.2,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(dark ? 0.4 : 0.08),
-                blurRadius: 24,
-                offset: const Offset(0, 12),
-              ),
+    final body = RepaintBoundary(
+      child: Container(
+        padding: padding,
+        decoration: BoxDecoration(
+          borderRadius: radius,
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              glassTop,
+              glassBottom,
             ],
           ),
-          child: child,
+          border: Border.all(
+            color: Colors.white.withOpacity(dark ? 0.12 : 0.30),
+            width: 1.2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(dark ? 0.45 : 0.18),
+              blurRadius: 28,
+              offset: const Offset(0, 14),
+            ),
+            // Reflexo branco interno no topo (highlight de vidro)
+            BoxShadow(
+              color: Colors.white.withOpacity(dark ? 0.05 : 0.18),
+              blurRadius: 0,
+              offset: const Offset(0, 1),
+              spreadRadius: 0,
+            ),
+          ],
         ),
+        child: child,
       ),
     );
 
