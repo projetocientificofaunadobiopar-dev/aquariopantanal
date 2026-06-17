@@ -9,6 +9,7 @@ import '../../models/especie.dart';
 import '../../providers/locale_provider.dart';
 import '../../services/supabase_service.dart';
 import '../../widgets/classe_icon.dart';
+import '../../widgets/photo_cropper.dart';
 
 class EspecieForm extends StatefulWidget {
   final Especie? editar;
@@ -118,14 +119,23 @@ class _EspecieFormState extends State<EspecieForm>
     final picker = ImagePicker();
     final x = await picker.pickImage(
       source: ImageSource.gallery,
-      maxWidth: 1024,
-      imageQuality: 85,
+      // Resolução generosa pra dar margem de crop sem perder qualidade.
+      maxWidth: 2048,
+      imageQuality: 92,
     );
     if (x == null) return;
     final bytes = await x.readAsBytes();
+    if (!mounted) return;
+
+    // Abre o cropper 3:4 e aguarda os bytes ajustados.
+    final cropped = await PhotoCropperPage.abrir(context, bytes);
+    if (cropped == null) return; // usuário cancelou
+
     setState(() {
-      _novoBytes = bytes;
-      _novoNome = x.name;
+      _novoBytes = cropped;
+      // Garante extensão png já que o cropper sempre gera PNG.
+      final base = x.name.replaceAll(RegExp(r'\.[^.]+$'), '');
+      _novoNome = '$base.png';
     });
   }
 

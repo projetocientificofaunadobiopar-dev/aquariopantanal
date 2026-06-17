@@ -72,6 +72,21 @@ class Strings {
         en: 'Select image',
         es: 'Seleccionar imagen',
       );
+  String get ajustarFoto => _t(
+        pt: 'Ajustar foto',
+        en: 'Adjust photo',
+        es: 'Ajustar foto',
+      );
+  String get cropDica => _t(
+        pt: 'Mova e ajuste a foto para enquadrar bem o animal',
+        en: 'Move and adjust the photo to frame the animal well',
+        es: 'Mueve y ajusta la foto para enmarcar bien al animal',
+      );
+  String get confirmar => _t(
+        pt: 'Confirmar',
+        en: 'Confirm',
+        es: 'Confirmar',
+      );
   String get carregando =>
       _t(pt: 'Carregando...', en: 'Loading...', es: 'Cargando...');
   String get nenhumaEspecie => _t(
