@@ -243,9 +243,9 @@ class _EspecieFormState extends State<EspecieForm>
           indicatorColor: scheme.primary,
           indicatorWeight: 3,
           tabs: [
-            _tabLabel('🇧🇷 Português', _ptOk()),
-            _tabLabel('🇺🇸 English', _enOk()),
-            _tabLabel('🇪🇸 Español', _esOk()),
+            _tabLabel('Português', _ptOk()),
+            _tabLabel('English', _enOk()),
+            _tabLabel('Español', _esOk()),
           ],
         ),
       ),

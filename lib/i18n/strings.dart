@@ -154,22 +154,22 @@ class Strings {
       );
   // ===== Home (boas-vindas) =====
   String get welcomeOver => _t(
-        pt: 'Olá, viajante 🌿',
-        en: 'Hello, traveler 🌿',
-        es: 'Hola, viajero 🌿',
+        pt: 'EDUCAÇÃO AMBIENTAL · BIOPARQUE PANTANAL',
+        en: 'ENVIRONMENTAL EDUCATION · PANTANAL BIOPARK',
+        es: 'EDUCACIÓN AMBIENTAL · BIOPARK PANTANAL',
       );
   String get welcomeTitle => _t(
-        pt: 'Bem-vindo ao\nBioparque Pantanal',
-        en: 'Welcome to\nPantanal Biopark',
-        es: 'Bienvenido al\nBiopark Pantanal',
+        pt: 'Bem-vindo ao maior pantanal do mundo.',
+        en: 'Welcome to the world\'s largest wetland.',
+        es: 'Bienvenido al humedal más grande del mundo.',
       );
   String get welcomeSubtitle => _t(
         pt:
-            'Uma janela para os mistérios do maior pantanal do mundo. Explore, aprenda e se surpreenda com a fauna que habita esse paraíso.',
+            'O Bioparque Pantanal é um centro de pesquisa e educação dedicado à fauna do Pantanal sul-mato-grossense. Conheça as espécies que dão vida a esse bioma único.',
         en:
-            'A window into the mysteries of the world\'s largest wetland. Explore, learn, and be amazed by the fauna that inhabits this paradise.',
+            'Pantanal Biopark is a research and education center dedicated to the fauna of the Pantanal in Mato Grosso do Sul. Discover the species that give life to this unique biome.',
         es:
-            'Una ventana a los misterios del humedal más grande del mundo. Explora, aprende y sorpréndete con la fauna que habita este paraíso.',
+            'Biopark Pantanal es un centro de investigación y educación dedicado a la fauna del Pantanal de Mato Grosso do Sul. Descubre las especies que dan vida a este bioma único.',
       );
   String get acConhecerTitle => _t(
         pt: 'Conhecer a Fauna',

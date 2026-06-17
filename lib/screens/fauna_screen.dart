@@ -17,20 +17,20 @@ import '../widgets/lang_switch.dart';
 const List<Map<String, dynamic>> _demoEspecies = [
   {
     'id': 'demo-1',
-    'slug': 'sucuri-verde',
-    'nome_popular_pt': 'Sucuri-verde',
-    'nome_popular_en': 'Green Anaconda',
-    'nome_popular_es': 'Anaconda verde',
-    'nome_cientifico': 'Eunectes murinus',
-    'bioma_origem_pt': 'Pantanal e Amazônia',
-    'bioma_origem_en': 'Pantanal and Amazon',
-    'bioma_origem_es': 'Pantanal y Amazonía',
+    'slug': 'sucuri-amarela',
+    'nome_popular_pt': 'Sucuri-amarela',
+    'nome_popular_en': 'Yellow Anaconda',
+    'nome_popular_es': 'Anaconda amarilla',
+    'nome_cientifico': 'Eunectes notaeus',
+    'bioma_origem_pt': 'Pantanal e bacia do Paraguai',
+    'bioma_origem_en': 'Pantanal and Paraguay basin',
+    'bioma_origem_es': 'Pantanal y cuenca del Paraguay',
     'nicho_ecologico_pt':
-        'Predadora de topo em ambientes alagados, controla populações de capivaras e jacarés jovens.',
+        'Serpente constritora semi-aquática endêmica do Pantanal. Predadora de peixes, aves aquáticas, jacarés jovens e pequenos mamíferos. Mantém o equilíbrio populacional das presas e é indicadora da saúde do ecossistema alagado.',
     'nicho_ecologico_en':
-        'Apex predator in flooded environments, controls capybara and young caiman populations.',
+        'Semi-aquatic constrictor snake endemic to the Pantanal. Preys on fish, aquatic birds, young caimans and small mammals. Controls prey populations and indicates the health of the flooded ecosystem.',
     'nicho_ecologico_es':
-        'Depredador tope en ambientes inundados, controla poblaciones de capibaras y caimanes jóvenes.',
+        'Serpiente constrictora semiacuática endémica del Pantanal. Depreda peces, aves acuáticas, caimanes jóvenes y pequeños mamíferos. Controla las poblaciones de presas e indica la salud del ecosistema inundado.',
     'imagem_url':
         'https://images.unsplash.com/photo-1583499871880-de841d1ace2a?w=800',
     'classe': 'reptil',
