@@ -129,8 +129,29 @@ class SobreScreen extends StatelessWidget {
                             .bodyMedium
                             ?.copyWith(
                               color: scheme.onSurface.withOpacity(0.5),
+                              height: 1.5,
                             ),
                         textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Center(
+                    child: TextButton.icon(
+                      onPressed: () => context.go('/login'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: scheme.onSurface.withOpacity(0.45),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 8),
+                      ),
+                      icon: const Icon(Icons.lock_outline_rounded,
+                          size: 16),
+                      label: Text(
+                        s.acessoAdmin,
+                        style: const TextStyle(
+                          fontSize: 12.5,
+                          letterSpacing: 0.3,
+                        ),
                       ),
                     ),
                   ),

@@ -365,8 +365,16 @@ class Strings {
       );
 
   String get sobreCreditos => _t(
-        pt: 'Desenvolvido com ❤ para o Bioparque Pantanal',
-        en: 'Built with ❤ for Pantanal Biopark',
-        es: 'Desarrollado con ❤ para el Biopark Pantanal',
+        pt:
+            'Desenvolvido pelo Clube de Ciências da Escola Teotônio Vilela em parceria com a equipe do Bioparque Pantanal.',
+        en:
+            'Developed by the Science Club of Escola Teotônio Vilela in partnership with the Bioparque Pantanal team.',
+        es:
+            'Desarrollado por el Club de Ciencias de la Escuela Teotônio Vilela en colaboración con el equipo del Biopark Pantanal.',
+      );
+  String get acessoAdmin => _t(
+        pt: 'Acesso administrativo',
+        en: 'Admin access',
+        es: 'Acceso administrativo',
       );
 }
