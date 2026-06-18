@@ -159,9 +159,9 @@ class Strings {
         es: 'EDUCACIÓN AMBIENTAL · BIOPARK PANTANAL',
       );
   String get welcomeTitle => _t(
-        pt: 'Bem-vindo ao maior pantanal do mundo.',
-        en: 'Welcome to the world\'s largest wetland.',
-        es: 'Bienvenido al humedal más grande del mundo.',
+        pt: 'Bem-vindo(a) ao maior aquário de água doce do mundo!',
+        en: 'Welcome to the world\'s largest freshwater aquarium!',
+        es: '¡Bienvenido(a) al mayor acuario de agua dulce del mundo!',
       );
   String get welcomeSubtitle => _t(
         pt:
