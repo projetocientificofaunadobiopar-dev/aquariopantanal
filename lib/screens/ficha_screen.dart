@@ -13,6 +13,7 @@ import '../providers/locale_provider.dart';
 import '../providers/visitas_provider.dart';
 import '../services/supabase_service.dart';
 import '../services/tts_service.dart';
+import '../widgets/avaliacao_modal.dart';
 import '../widgets/classe_icon.dart';
 import '../widgets/lang_switch.dart';
 
@@ -52,9 +53,14 @@ class _FichaScreenState extends State<FichaScreen>
   void _marcarVisitada() {
     final id = _e?.id;
     if (id == null || id.isEmpty || id.startsWith('demo-')) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
-      context.read<VisitasProvider>().marcarVisitada(id);
+      await context.read<VisitasProvider>().marcarVisitada(id);
+      if (!mounted) return;
+      // Após algumas espécies vistas, oferece a pesquisa rápida — uma vez só.
+      await Future<void>.delayed(const Duration(milliseconds: 800));
+      if (!mounted) return;
+      AvaliacaoModal.talvezMostrar(context, minVisitas: 3);
     });
   }
 
@@ -249,6 +255,8 @@ class _FichaScreenState extends State<FichaScreen>
                   destaque: true),
             if (status != null && _ameacado(status))
               _cardConservacao(loc, status),
+            const SizedBox(height: 8),
+            _linkGlossario(loc),
           ],
         ),
       ),
@@ -540,6 +548,45 @@ class _FichaScreenState extends State<FichaScreen>
     );
   }
 
+  Widget _linkGlossario(AppLocale loc) {
+    final scheme = Theme.of(context).colorScheme;
+    final label = loc == AppLocale.pt
+        ? 'Não entendeu algum termo? Veja o glossário'
+        : loc == AppLocale.en
+            ? "Don't get a term? See the glossary"
+            : '¿No entiendes algún término? Ver el glosario';
+    return Material(
+      color: scheme.surfaceContainerHighest.withOpacity(0.4),
+      borderRadius: BorderRadius.circular(14),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => context.push('/glossario'),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(
+            children: [
+              Icon(Icons.menu_book_rounded,
+                  color: scheme.primary, size: 20),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: scheme.onSurface,
+                  ),
+                ),
+              ),
+              Icon(Icons.arrow_forward_rounded,
+                  size: 16, color: scheme.onSurface.withOpacity(0.5)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _chipLocalizacao(Especie e, AppLocale loc) {
     final scheme = Theme.of(context).colorScheme;
     final texto = e.localizacao(loc)!;
@@ -802,16 +849,16 @@ class _FichaScreenState extends State<FichaScreen>
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(st.codigo,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: Color(st.corTexto),
                 fontWeight: FontWeight.w800,
                 fontSize: 12,
                 letterSpacing: 0.8,
               )),
           const SizedBox(width: 8),
           Text(st.label(loc),
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: Color(st.corTexto),
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
               )),

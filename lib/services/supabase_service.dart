@@ -89,6 +89,20 @@ class SupabaseService {
     return _sb.storage.from(SupabaseConfig.bucket).getPublicUrl(path);
   }
 
+  Future<void> enviarAvaliacao({
+    required int nota,
+    String? comentario,
+    String? idioma,
+    int? visitadas,
+  }) async {
+    await _sb.from('avaliacoes').insert({
+      'nota': nota,
+      'comentario': (comentario ?? '').trim().isEmpty ? null : comentario,
+      'idioma': idioma,
+      'visitadas_count': visitadas,
+    });
+  }
+
   Future<void> login(String email, String password) async {
     await _sb.auth.signInWithPassword(email: email, password: password);
   }

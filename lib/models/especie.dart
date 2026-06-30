@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import '../providers/locale_provider.dart';
 
 enum ClasseTaxonomica {
@@ -76,6 +78,18 @@ enum StatusConservacao {
       if (v.codigo == c) return v;
     }
     return null;
+  }
+
+  /// 0xFFFFFFFF (branco) ou 0xFF111111 (quase preto) — o que tiver melhor
+  /// contraste sobre [cor]. Usa luminância relativa do WCAG.
+  int get corTexto {
+    double lin(double c) =>
+        c <= 0.03928 ? c / 12.92 : math.pow((c + 0.055) / 1.055, 2.4).toDouble();
+    final r = lin(((cor >> 16) & 0xFF) / 255.0);
+    final g = lin(((cor >> 8) & 0xFF) / 255.0);
+    final b = lin((cor & 0xFF) / 255.0);
+    final l = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    return l > 0.18 ? 0xFF111111 : 0xFFFFFFFF;
   }
 }
 

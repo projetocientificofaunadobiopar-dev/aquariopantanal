@@ -101,8 +101,8 @@ class _EspecieCardState extends State<EspecieCard> {
                       Color(status.cor),
                       Text(
                         status.codigo,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: Color(status.corTexto),
                           fontWeight: FontWeight.w800,
                           fontSize: 11,
                           letterSpacing: 0.8,

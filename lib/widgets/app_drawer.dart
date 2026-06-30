@@ -71,6 +71,18 @@ class AppDrawer extends StatelessWidget {
                     },
                   ),
                   _MenuTile(
+                    icon: Icons.menu_book_rounded,
+                    label: loc == AppLocale.pt
+                        ? 'Glossário'
+                        : loc == AppLocale.en
+                            ? 'Glossary'
+                            : 'Glosario',
+                    onTap: () {
+                      close();
+                      context.push('/glossario');
+                    },
+                  ),
+                  _MenuTile(
                     icon: AppIcons.circleInfo,
                     label: s.sobre,
                     onTap: () {

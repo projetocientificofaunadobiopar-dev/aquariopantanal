@@ -8,6 +8,7 @@ import '../screens/admin/admin_dashboard.dart';
 import '../screens/admin/especie_form.dart';
 import '../screens/fauna_screen.dart';
 import '../screens/ficha_screen.dart';
+import '../screens/glossario_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/onboarding_screen.dart';
@@ -96,6 +97,10 @@ GoRouter buildRouter(AuthProvider auth, OnboardingProvider onb) {
       GoRoute(
         path: '/sobre',
         pageBuilder: (_, st) => _fade(const SobreScreen(), st),
+      ),
+      GoRoute(
+        path: '/glossario',
+        pageBuilder: (_, st) => _fade(const GlossarioScreen(), st),
       ),
       GoRoute(
         path: '/scan',
