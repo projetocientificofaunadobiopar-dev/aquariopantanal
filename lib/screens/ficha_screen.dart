@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -9,7 +10,6 @@ import '../providers/locale_provider.dart';
 import '../services/supabase_service.dart';
 import '../services/tts_service.dart';
 import '../widgets/classe_icon.dart';
-import '../widgets/hero_image.dart';
 import '../widgets/lang_switch.dart';
 
 class FichaScreen extends StatefulWidget {
@@ -83,7 +83,6 @@ class _FichaScreenState extends State<FichaScreen>
 
   Future<void> _toggleFala(Especie e, AppLocale loc, Strings s) async {
     HapticFeedback.mediumImpact();
-    // Sempre fala em PT se houver fallback, ou no idioma escolhido
     final ttsLoc = e.houveFallback(loc) ? AppLocale.pt : loc;
     if (_falando) {
       await TtsService.instance.parar();
@@ -92,6 +91,23 @@ class _FichaScreenState extends State<FichaScreen>
       setState(() => _falando = true);
       await TtsService.instance.falar(_textoParaTts(e, loc, s), loc: ttsLoc);
     }
+  }
+
+  void _abrirGaleria(Especie e) {
+    if (e.imagemUrl == null) return;
+    HapticFeedback.lightImpact();
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        barrierColor: Colors.black,
+        transitionDuration: const Duration(milliseconds: 220),
+        pageBuilder: (_, __, ___) => _GaleriaViewer(
+          tag: 'img_${e.id}',
+          url: e.imagemUrl!,
+          legenda: e.nomePopular(context.read<LocaleProvider>().locale),
+        ),
+      ),
+    );
   }
 
   @override
@@ -120,159 +136,212 @@ class _FichaScreenState extends State<FichaScreen>
     final fb = e.houveFallback(loc);
 
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 360,
-            pinned: true,
-            stretch: true,
-            backgroundColor: scheme.surface,
-            foregroundColor: Colors.white,
-            leading: _CircleAction(
-              icon: Icons.arrow_back_rounded,
-              onTap: () => context.canPop() ? context.pop() : context.go('/'),
-            ),
-            actions: [
-              _CircleAction(
-                icon: null,
-                child: const LangSwitch(foregroundColor: Colors.white),
-              ),
-              const SizedBox(width: 8),
-            ],
-            flexibleSpace: FlexibleSpaceBar(
-              stretchModes: const [
-                StretchMode.zoomBackground,
-                StretchMode.fadeTitle,
-              ],
-              background: Stack(
-                fit: StackFit.expand,
-                children: [
-                  e.imagemUrl == null
-                      ? Container(color: scheme.surfaceContainerHighest)
-                      : HeroImage(
-                          tag: 'img_${e.id}',
-                          url: e.imagemUrl!,
-                        ),
-                  DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.black.withOpacity(0.35),
-                          Colors.transparent,
-                          Colors.black.withOpacity(0.45),
-                          Colors.black.withOpacity(0.92),
-                        ],
-                        stops: const [0, 0.35, 0.7, 1],
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    left: 24,
-                    right: 24,
-                    bottom: 24,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (status != null) _statusBadge(status, loc),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            if (classe != null) ...[
-                              ClasseAvatar(classe: classe, size: 36),
-                              const SizedBox(width: 12),
-                            ],
-                            Expanded(
-                              child: Text(
-                                e.nomePopular(loc),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 30,
-                                  fontWeight: FontWeight.w800,
-                                  height: 1.1,
-                                  letterSpacing: -0.5,
-                                  shadows: [
-                                    Shadow(
-                                        blurRadius: 8,
-                                        color: Colors.black54),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          e.nomeCientifico,
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
-                            fontSize: 16,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                        if (classe != null || e.familia != null) ...[
-                          const SizedBox(height: 6),
-                          Text(
-                            [
-                              if (classe != null) classe.label(loc),
-                              if (e.familia != null) e.familia!,
-                            ].join(' · '),
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.75),
-                              fontSize: 13,
-                              letterSpacing: 0.3,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 140),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (fb) ...[
-                    _fallbackBanner(context, s),
-                    const SizedBox(height: 16),
-                  ],
-                  _bloco(context, s.bioma, e.bioma(loc),
-                      Icons.public_rounded, scheme.primary),
-                  _bloco(context, s.nicho, e.nicho(loc),
-                      Icons.eco_rounded, scheme.primary),
-                  if (e.tamanho(loc)?.isNotEmpty == true)
-                    _bloco(context, s.tamanho, e.tamanho(loc)!,
-                        Icons.straighten_rounded, scheme.primary),
-                  if (e.dieta(loc)?.isNotEmpty == true)
-                    _bloco(context, s.dieta, e.dieta(loc)!,
-                        Icons.restaurant_rounded, scheme.primary),
-                  if (e.expectativaVida(loc)?.isNotEmpty == true)
-                    _bloco(context, s.expectativaVida,
-                        e.expectativaVida(loc)!,
-                        Icons.access_time_rounded, scheme.primary),
-                  if (e.ameacas(loc)?.isNotEmpty == true)
-                    _bloco(context, s.ameacas, e.ameacas(loc)!,
-                        Icons.warning_amber_rounded, Colors.redAccent,
-                        destaque: true),
-                  if (e.curiosidade(loc)?.isNotEmpty == true)
-                    _bloco(context, s.curiosidade, e.curiosidade(loc)!,
-                        Icons.lightbulb_rounded, scheme.secondary,
-                        destaque: true),
-                ],
-              ),
-            ),
+      appBar: AppBar(
+        backgroundColor: scheme.surface,
+        foregroundColor: scheme.onSurface,
+        elevation: 0,
+        scrolledUnderElevation: 1,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: () => context.canPop() ? context.pop() : context.go('/'),
+        ),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 8),
+            child: Center(child: LangSwitch()),
           ),
         ],
       ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 140),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _imageCard(e, scheme),
+            const SizedBox(height: 20),
+            _tituloSecao(e, status, classe, loc),
+            const SizedBox(height: 24),
+            if (fb) ...[
+              _fallbackBanner(context, s),
+              const SizedBox(height: 16),
+            ],
+            _bloco(context, s.bioma, e.bioma(loc),
+                Icons.public_rounded, scheme.primary),
+            _bloco(context, s.nicho, e.nicho(loc),
+                Icons.eco_rounded, scheme.primary),
+            if (e.tamanho(loc)?.isNotEmpty == true)
+              _bloco(context, s.tamanho, e.tamanho(loc)!,
+                  Icons.straighten_rounded, scheme.primary),
+            if (e.dieta(loc)?.isNotEmpty == true)
+              _bloco(context, s.dieta, e.dieta(loc)!,
+                  Icons.restaurant_rounded, scheme.primary),
+            if (e.expectativaVida(loc)?.isNotEmpty == true)
+              _bloco(context, s.expectativaVida, e.expectativaVida(loc)!,
+                  Icons.access_time_rounded, scheme.primary),
+            if (e.ameacas(loc)?.isNotEmpty == true)
+              _bloco(context, s.ameacas, e.ameacas(loc)!,
+                  Icons.warning_amber_rounded, Colors.redAccent,
+                  destaque: true),
+            if (e.curiosidade(loc)?.isNotEmpty == true)
+              _bloco(context, s.curiosidade, e.curiosidade(loc)!,
+                  Icons.lightbulb_rounded, scheme.secondary,
+                  destaque: true),
+          ],
+        ),
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: _ttsFab(e, loc, s, scheme),
+    );
+  }
+
+  Widget _imageCard(Especie e, ColorScheme scheme) {
+    if (e.imagemUrl == null) {
+      return AspectRatio(
+        aspectRatio: 4 / 3,
+        child: Container(
+          decoration: BoxDecoration(
+            color: scheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Icon(
+            Icons.image_not_supported_rounded,
+            size: 48,
+            color: scheme.onSurface.withOpacity(0.4),
+          ),
+        ),
+      );
+    }
+    return GestureDetector(
+      onTap: () => _abrirGaleria(e),
+      child: Container(
+        constraints: const BoxConstraints(maxHeight: 420),
+        decoration: BoxDecoration(
+          color: scheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Stack(
+          alignment: Alignment.bottomRight,
+          children: [
+            Hero(
+              tag: 'img_${e.id}',
+              child: CachedNetworkImage(
+                imageUrl: e.imagemUrl!,
+                fit: BoxFit.contain,
+                width: double.infinity,
+                placeholder: (_, __) => const AspectRatio(
+                  aspectRatio: 4 / 3,
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+                errorWidget: (_, __, ___) => AspectRatio(
+                  aspectRatio: 4 / 3,
+                  child: Icon(
+                    Icons.broken_image_rounded,
+                    size: 48,
+                    color: scheme.onSurface.withOpacity(0.4),
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.55),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.zoom_in_rounded,
+                        color: Colors.white, size: 16),
+                    SizedBox(width: 4),
+                    Text(
+                      'Ampliar',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _tituloSecao(
+    Especie e,
+    StatusConservacao? status,
+    ClasseTaxonomica? classe,
+    AppLocale loc,
+  ) {
+    final scheme = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (status != null) ...[
+          _statusBadge(status, loc),
+          const SizedBox(height: 14),
+        ],
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            if (classe != null) ...[
+              ClasseAvatar(classe: classe, size: 40),
+              const SizedBox(width: 12),
+            ],
+            Expanded(
+              child: Text(
+                e.nomePopular(loc),
+                style: TextStyle(
+                  color: scheme.onSurface,
+                  fontSize: 28,
+                  fontWeight: FontWeight.w800,
+                  height: 1.15,
+                  letterSpacing: -0.5,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          e.nomeCientifico,
+          style: TextStyle(
+            color: scheme.onSurface.withOpacity(0.7),
+            fontSize: 16,
+            fontStyle: FontStyle.italic,
+          ),
+        ),
+        if (classe != null || e.familia != null) ...[
+          const SizedBox(height: 6),
+          Text(
+            [
+              if (classe != null) classe.label(loc),
+              if (e.familia != null) e.familia!,
+            ].join(' · '),
+            style: TextStyle(
+              color: scheme.onSurface.withOpacity(0.55),
+              fontSize: 13,
+              letterSpacing: 0.3,
+            ),
+          ),
+        ],
+      ],
     );
   }
 
@@ -462,29 +531,88 @@ class _FichaScreenState extends State<FichaScreen>
   }
 }
 
-class _CircleAction extends StatelessWidget {
-  final IconData? icon;
-  final VoidCallback? onTap;
-  final Widget? child;
-  const _CircleAction({this.icon, this.onTap, this.child});
+class _GaleriaViewer extends StatelessWidget {
+  final String tag;
+  final String url;
+  final String legenda;
+  const _GaleriaViewer({
+    required this.tag,
+    required this.url,
+    required this.legenda,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8),
-      child: Material(
-        color: Colors.black.withOpacity(0.4),
-        shape: const CircleBorder(),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          child: SizedBox(
-            width: 40,
-            height: 40,
-            child: child ??
-                Icon(icon, color: Colors.white, size: 22),
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: () => Navigator.of(context).pop(),
+              child: InteractiveViewer(
+                minScale: 1.0,
+                maxScale: 5.0,
+                child: Center(
+                  child: Hero(
+                    tag: tag,
+                    child: CachedNetworkImage(
+                      imageUrl: url,
+                      fit: BoxFit.contain,
+                      placeholder: (_, __) => const Center(
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                        ),
+                      ),
+                      errorWidget: (_, __, ___) => const Icon(
+                        Icons.broken_image_rounded,
+                        color: Colors.white54,
+                        size: 64,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
-        ),
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 8,
+            right: 8,
+            child: Material(
+              color: Colors.black54,
+              shape: const CircleBorder(),
+              clipBehavior: Clip.antiAlias,
+              child: IconButton(
+                icon: const Icon(Icons.close_rounded, color: Colors.white),
+                onPressed: () => Navigator.of(context).pop(),
+                tooltip: 'Fechar',
+              ),
+            ),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: MediaQuery.of(context).padding.bottom + 24,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.55),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  legenda,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
