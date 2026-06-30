@@ -28,7 +28,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   @override
   void initState() {
     super.initState();
-    _future = _svc.listar().timeout(const Duration(seconds: 8));
+    _future = _svc.listarTodas().timeout(const Duration(seconds: 8));
   }
 
   @override
@@ -38,7 +38,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }
 
   void _recarregar() {
-    setState(() => _future = _svc.listar());
+    setState(() => _future = _svc.listarTodas());
   }
 
   bool _incompleta(Especie e) =>

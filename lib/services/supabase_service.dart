@@ -6,7 +6,20 @@ import '../models/especie.dart';
 class SupabaseService {
   final SupabaseClient _sb = Supabase.instance.client;
 
+  /// Lista pública: só espécies publicadas.
   Future<List<Especie>> listar() async {
+    final res = await _sb
+        .from('especies')
+        .select()
+        .eq('publicado', true)
+        .order('nome_popular_pt', ascending: true);
+    return (res as List)
+        .map((m) => Especie.fromMap(m as Map<String, dynamic>))
+        .toList();
+  }
+
+  /// Lista admin: inclui rascunhos.
+  Future<List<Especie>> listarTodas() async {
     final res = await _sb
         .from('especies')
         .select()

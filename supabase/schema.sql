@@ -39,12 +39,17 @@ create table if not exists public.especies (
   expectativa_vida_es text,
   ameacas_es text,
   slug text unique,
+  setor text,
+  tanque text,
+  publicado boolean not null default true,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
 
 create index if not exists idx_especies_nome_pt
   on public.especies (nome_popular_pt);
+create index if not exists idx_especies_publicado
+  on public.especies (publicado);
 
 -- ===== TRIGGER updated_at =====
 create or replace function public.set_updated_at()

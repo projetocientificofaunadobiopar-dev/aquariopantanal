@@ -217,6 +217,10 @@ class _FichaScreenState extends State<FichaScreen>
             _imageCard(e, scheme),
             const SizedBox(height: 20),
             _tituloSecao(e, status, classe, loc),
+            if (e.localizacao(loc) != null) ...[
+              const SizedBox(height: 14),
+              _chipLocalizacao(e, loc),
+            ],
             const SizedBox(height: 24),
             if (fb) ...[
               _fallbackBanner(context, s),
@@ -533,6 +537,55 @@ class _FichaScreenState extends State<FichaScreen>
           ),
         ],
       ],
+    );
+  }
+
+  Widget _chipLocalizacao(Especie e, AppLocale loc) {
+    final scheme = Theme.of(context).colorScheme;
+    final texto = e.localizacao(loc)!;
+    final label = loc == AppLocale.pt
+        ? 'Onde encontrar'
+        : loc == AppLocale.en
+            ? 'Where to find'
+            : 'Dónde encontrar';
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: scheme.primary.withOpacity(0.10),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: scheme.primary.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.place_rounded, color: scheme.primary, size: 22),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.0,
+                    color: scheme.primary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  texto,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: scheme.onSurface,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 

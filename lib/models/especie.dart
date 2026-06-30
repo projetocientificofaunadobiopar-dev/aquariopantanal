@@ -103,6 +103,10 @@ class Especie {
   final String? classe;
   final String? familia;
 
+  final String? setor;
+  final String? tanque;
+  final bool publicado;
+
   final String? tamanhoPt;
   final String? tamanhoEn;
   final String? tamanhoEs;
@@ -141,6 +145,9 @@ class Especie {
     this.statusConservacao,
     this.classe,
     this.familia,
+    this.setor,
+    this.tanque,
+    this.publicado = true,
     this.tamanhoPt,
     this.tamanhoEn,
     this.tamanhoEs,
@@ -180,6 +187,9 @@ class Especie {
         statusConservacao: m['status_conservacao'] as String?,
         classe: m['classe'] as String?,
         familia: m['familia'] as String?,
+        setor: m['setor'] as String?,
+        tanque: m['tanque'] as String?,
+        publicado: (m['publicado'] as bool?) ?? true,
         tamanhoPt: m['tamanho_pt'] as String?,
         tamanhoEn: m['tamanho_en'] as String?,
         tamanhoEs: m['tamanho_es'] as String?,
@@ -213,6 +223,9 @@ class Especie {
         'status_conservacao': statusConservacao,
         'classe': classe,
         'familia': familia,
+        'setor': setor,
+        'tanque': tanque,
+        'publicado': publicado,
         'tamanho_pt': tamanhoPt,
         'tamanho_en': tamanhoEn,
         'tamanho_es': tamanhoEs,
@@ -282,6 +295,30 @@ class Especie {
   ClasseTaxonomica? get classeEnum => ClasseTaxonomica.fromCodigo(classe);
   StatusConservacao? get statusEnum =>
       StatusConservacao.fromCodigo(statusConservacao);
+
+  /// Texto curto pra localização (ex.: "Setor B · Aquário 3").
+  /// Retorna null se nada estiver preenchido.
+  String? localizacao(AppLocale loc) {
+    final s = (setor ?? '').trim();
+    final t = (tanque ?? '').trim();
+    if (s.isEmpty && t.isEmpty) return null;
+    final partes = <String>[];
+    if (s.isNotEmpty) {
+      partes.add(loc == AppLocale.en
+          ? 'Sector $s'
+          : loc == AppLocale.es
+              ? 'Sector $s'
+              : 'Setor $s');
+    }
+    if (t.isNotEmpty) {
+      partes.add(loc == AppLocale.en
+          ? 'Tank $t'
+          : loc == AppLocale.es
+              ? 'Acuario $t'
+              : 'Aquário $t');
+    }
+    return partes.join(' · ');
+  }
 
   /// Lista completa de fotos (capa primeiro, depois adicionais), sem nulos/vazios.
   List<String> get galeria {
