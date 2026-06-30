@@ -135,12 +135,17 @@ class _FichaScreenState extends State<FichaScreen>
     final classe = e.classeEnum;
     final fb = e.houveFallback(loc);
 
+    final media = MediaQuery.of(context);
+    final isCompact = media.size.width < 380;
+    final hPad = isCompact ? 16.0 : 20.0;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: scheme.surface,
         foregroundColor: scheme.onSurface,
         elevation: 0,
         scrolledUnderElevation: 1,
+        titleSpacing: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => context.canPop() ? context.pop() : context.go('/'),
@@ -153,7 +158,12 @@ class _FichaScreenState extends State<FichaScreen>
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 140),
+        padding: EdgeInsets.fromLTRB(
+          hPad,
+          12,
+          hPad,
+          120 + media.padding.bottom,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -195,89 +205,97 @@ class _FichaScreenState extends State<FichaScreen>
   }
 
   Widget _imageCard(Especie e, ColorScheme scheme) {
+    final media = MediaQuery.of(context);
+    // Adapta à tela: 52% da altura, com piso/teto pra não ficar minúsculo
+    // em landscape nem gigante em desktop.
+    final maxH = (media.size.height * 0.52).clamp(220.0, 460.0);
+
     if (e.imagemUrl == null) {
-      return AspectRatio(
-        aspectRatio: 4 / 3,
-        child: Container(
-          decoration: BoxDecoration(
-            color: scheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Icon(
-            Icons.image_not_supported_rounded,
-            size: 48,
-            color: scheme.onSurface.withOpacity(0.4),
-          ),
-        ),
-      );
-    }
-    return GestureDetector(
-      onTap: () => _abrirGaleria(e),
-      child: Container(
-        constraints: const BoxConstraints(maxHeight: 420),
+      return Container(
+        height: maxH * 0.7,
         decoration: BoxDecoration(
           color: scheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 16,
-              offset: const Offset(0, 4),
-            ),
-          ],
         ),
-        clipBehavior: Clip.antiAlias,
-        child: Stack(
-          alignment: Alignment.bottomRight,
-          children: [
-            Hero(
-              tag: 'img_${e.id}',
-              child: CachedNetworkImage(
-                imageUrl: e.imagemUrl!,
-                fit: BoxFit.contain,
-                width: double.infinity,
-                placeholder: (_, __) => const AspectRatio(
-                  aspectRatio: 4 / 3,
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-                errorWidget: (_, __, ___) => AspectRatio(
-                  aspectRatio: 4 / 3,
-                  child: Icon(
-                    Icons.broken_image_rounded,
-                    size: 48,
-                    color: scheme.onSurface.withOpacity(0.4),
+        child: Icon(
+          Icons.image_not_supported_rounded,
+          size: 48,
+          color: scheme.onSurface.withOpacity(0.4),
+        ),
+      );
+    }
+    return Semantics(
+      label: 'Toque para ampliar a foto',
+      button: true,
+      child: GestureDetector(
+        onTap: () => _abrirGaleria(e),
+        child: Container(
+          constraints: BoxConstraints(maxHeight: maxH),
+          decoration: BoxDecoration(
+            color: scheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 16,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Stack(
+            alignment: Alignment.bottomRight,
+            children: [
+              Hero(
+                tag: 'img_${e.id}',
+                child: CachedNetworkImage(
+                  imageUrl: e.imagemUrl!,
+                  fit: BoxFit.contain,
+                  width: double.infinity,
+                  placeholder: (_, __) => SizedBox(
+                    height: maxH * 0.7,
+                    child: const Center(child: CircularProgressIndicator()),
+                  ),
+                  errorWidget: (_, __, ___) => SizedBox(
+                    height: maxH * 0.7,
+                    child: Icon(
+                      Icons.broken_image_rounded,
+                      size: 48,
+                      color: scheme.onSurface.withOpacity(0.4),
+                    ),
                   ),
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.55),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.zoom_in_rounded,
-                        color: Colors.white, size: 16),
-                    SizedBox(width: 4),
-                    Text(
-                      'Ampliar',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+              Padding(
+                padding: const EdgeInsets.all(10),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.6),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.zoom_out_map_rounded,
+                          color: Colors.white, size: 16),
+                      SizedBox(width: 6),
+                      Text(
+                        'Ampliar',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.3,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -531,7 +549,7 @@ class _FichaScreenState extends State<FichaScreen>
   }
 }
 
-class _GaleriaViewer extends StatelessWidget {
+class _GaleriaViewer extends StatefulWidget {
   final String tag;
   final String url;
   final String legenda;
@@ -542,32 +560,126 @@ class _GaleriaViewer extends StatelessWidget {
   });
 
   @override
+  State<_GaleriaViewer> createState() => _GaleriaViewerState();
+}
+
+class _GaleriaViewerState extends State<_GaleriaViewer>
+    with SingleTickerProviderStateMixin {
+  final TransformationController _ctrl = TransformationController();
+  late final AnimationController _zoomAnim;
+  Animation<Matrix4>? _zoomTween;
+  TapDownDetails? _doubleTapPos;
+
+  double _dragY = 0;
+  bool _dragging = false;
+
+  bool get _zoomed => _ctrl.value.getMaxScaleOnAxis() > 1.05;
+
+  @override
+  void initState() {
+    super.initState();
+    _zoomAnim = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 220),
+    )..addListener(() {
+        if (_zoomTween != null) _ctrl.value = _zoomTween!.value;
+      });
+    _ctrl.addListener(() => setState(() {}));
+  }
+
+  @override
+  void dispose() {
+    _zoomAnim.dispose();
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  void _toggleZoom() {
+    HapticFeedback.lightImpact();
+    Matrix4 target;
+    if (_zoomed) {
+      target = Matrix4.identity();
+    } else {
+      const zoom = 2.5;
+      final pos = _doubleTapPos?.localPosition;
+      if (pos != null) {
+        target = Matrix4.identity()
+          ..translate(-pos.dx * (zoom - 1), -pos.dy * (zoom - 1))
+          ..scale(zoom);
+      } else {
+        target = Matrix4.identity()..scale(zoom);
+      }
+    }
+    _zoomTween = Matrix4Tween(begin: _ctrl.value, end: target).animate(
+      CurvedAnimation(parent: _zoomAnim, curve: Curves.easeOutCubic),
+    );
+    _zoomAnim
+      ..reset()
+      ..forward();
+  }
+
+  void _onDragUpdate(DragUpdateDetails d) {
+    if (_zoomed) return;
+    setState(() {
+      _dragging = true;
+      _dragY += d.delta.dy;
+    });
+  }
+
+  void _onDragEnd(DragEndDetails d) {
+    if (_zoomed) return;
+    final velocity = d.primaryVelocity ?? 0;
+    final shouldClose = _dragY.abs() > 120 || velocity.abs() > 600;
+    if (shouldClose) {
+      HapticFeedback.lightImpact();
+      Navigator.of(context).pop();
+    } else {
+      setState(() {
+        _dragY = 0;
+        _dragging = false;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final media = MediaQuery.of(context);
+    final progress = (_dragY.abs() / 300).clamp(0.0, 1.0);
+    final bgOpacity = 1.0 - progress * 0.7;
+    final uiVisible = !_zoomed && !_dragging;
+
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.black.withOpacity(bgOpacity),
       body: Stack(
         children: [
           Positioned.fill(
             child: GestureDetector(
-              onTap: () => Navigator.of(context).pop(),
-              child: InteractiveViewer(
-                minScale: 1.0,
-                maxScale: 5.0,
-                child: Center(
-                  child: Hero(
-                    tag: tag,
-                    child: CachedNetworkImage(
-                      imageUrl: url,
-                      fit: BoxFit.contain,
-                      placeholder: (_, __) => const Center(
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
+              behavior: HitTestBehavior.opaque,
+              onTap: _zoomed ? null : () => Navigator.of(context).pop(),
+              onDoubleTapDown: (d) => _doubleTapPos = d,
+              onDoubleTap: _toggleZoom,
+              onVerticalDragUpdate: _onDragUpdate,
+              onVerticalDragEnd: _onDragEnd,
+              child: Transform.translate(
+                offset: Offset(0, _dragY),
+                child: InteractiveViewer(
+                  transformationController: _ctrl,
+                  minScale: 1.0,
+                  maxScale: 5.0,
+                  child: Center(
+                    child: Hero(
+                      tag: widget.tag,
+                      child: CachedNetworkImage(
+                        imageUrl: widget.url,
+                        fit: BoxFit.contain,
+                        placeholder: (_, __) => const Center(
+                          child: CircularProgressIndicator(color: Colors.white),
                         ),
-                      ),
-                      errorWidget: (_, __, ___) => const Icon(
-                        Icons.broken_image_rounded,
-                        color: Colors.white54,
-                        size: 64,
+                        errorWidget: (_, __, ___) => const Icon(
+                          Icons.broken_image_rounded,
+                          color: Colors.white54,
+                          size: 64,
+                        ),
                       ),
                     ),
                   ),
@@ -576,37 +688,63 @@ class _GaleriaViewer extends StatelessWidget {
             ),
           ),
           Positioned(
-            top: MediaQuery.of(context).padding.top + 8,
+            top: media.padding.top + 8,
             right: 8,
-            child: Material(
-              color: Colors.black54,
-              shape: const CircleBorder(),
-              clipBehavior: Clip.antiAlias,
-              child: IconButton(
-                icon: const Icon(Icons.close_rounded, color: Colors.white),
-                onPressed: () => Navigator.of(context).pop(),
-                tooltip: 'Fechar',
+            child: AnimatedOpacity(
+              opacity: uiVisible ? 1 : 0,
+              duration: const Duration(milliseconds: 150),
+              child: Material(
+                color: Colors.black54,
+                shape: const CircleBorder(),
+                clipBehavior: Clip.antiAlias,
+                child: IconButton(
+                  iconSize: 24,
+                  padding: const EdgeInsets.all(12),
+                  constraints: const BoxConstraints(
+                    minWidth: 48,
+                    minHeight: 48,
+                  ),
+                  icon: const Icon(Icons.close_rounded, color: Colors.white),
+                  onPressed: () => Navigator.of(context).pop(),
+                  tooltip: 'Fechar',
+                ),
               ),
             ),
           ),
           Positioned(
-            left: 0,
-            right: 0,
-            bottom: MediaQuery.of(context).padding.bottom + 24,
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.55),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  legenda,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
+            left: 16,
+            right: 16,
+            bottom: media.padding.bottom + 24,
+            child: AnimatedOpacity(
+              opacity: uiVisible ? 1 : 0,
+              duration: const Duration(milliseconds: 150),
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.55),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.touch_app_rounded,
+                          color: Colors.white70, size: 14),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          widget.legenda,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
