@@ -27,6 +27,8 @@ class _FichaScreenState extends State<FichaScreen>
   String? _erro;
   bool _falando = false;
   late final AnimationController _pulse;
+  final PageController _galeriaCtrl = PageController();
+  int _paginaAtual = 0;
 
   @override
   void initState() {
@@ -42,6 +44,7 @@ class _FichaScreenState extends State<FichaScreen>
   @override
   void dispose() {
     _pulse.dispose();
+    _galeriaCtrl.dispose();
     TtsService.instance.parar();
     super.dispose();
   }
@@ -93,8 +96,9 @@ class _FichaScreenState extends State<FichaScreen>
     }
   }
 
-  void _abrirGaleria(Especie e) {
-    if (e.imagemUrl == null) return;
+  void _abrirGaleria(Especie e, int indiceInicial) {
+    final urls = e.galeria;
+    if (urls.isEmpty) return;
     HapticFeedback.lightImpact();
     Navigator.of(context).push(
       PageRouteBuilder(
@@ -102,8 +106,9 @@ class _FichaScreenState extends State<FichaScreen>
         barrierColor: Colors.black,
         transitionDuration: const Duration(milliseconds: 220),
         pageBuilder: (_, __, ___) => _GaleriaViewer(
-          tag: 'img_${e.id}',
-          url: e.imagemUrl!,
+          heroTag: 'img_${e.id}',
+          urls: urls,
+          inicial: indiceInicial,
           legenda: e.nomePopular(context.read<LocaleProvider>().locale),
         ),
       ),
@@ -206,11 +211,10 @@ class _FichaScreenState extends State<FichaScreen>
 
   Widget _imageCard(Especie e, ColorScheme scheme) {
     final media = MediaQuery.of(context);
-    // Adapta à tela: 52% da altura, com piso/teto pra não ficar minúsculo
-    // em landscape nem gigante em desktop.
     final maxH = (media.size.height * 0.52).clamp(220.0, 460.0);
+    final fotos = e.galeria;
 
-    if (e.imagemUrl == null) {
+    if (fotos.isEmpty) {
       return Container(
         height: maxH * 0.7,
         decoration: BoxDecoration(
@@ -224,80 +228,205 @@ class _FichaScreenState extends State<FichaScreen>
         ),
       );
     }
-    return Semantics(
-      label: 'Toque para ampliar a foto',
-      button: true,
-      child: GestureDetector(
-        onTap: () => _abrirGaleria(e),
-        child: Container(
-          constraints: BoxConstraints(maxHeight: maxH),
-          decoration: BoxDecoration(
-            color: scheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.08),
-                blurRadius: 16,
-                offset: const Offset(0, 4),
-              ),
-            ],
+    final totalFotos = fotos.length;
+    return Container(
+      constraints: BoxConstraints(maxHeight: maxH),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
           ),
-          clipBehavior: Clip.antiAlias,
-          child: Stack(
-            alignment: Alignment.bottomRight,
-            children: [
-              Hero(
-                tag: 'img_${e.id}',
-                child: CachedNetworkImage(
-                  imageUrl: e.imagemUrl!,
-                  fit: BoxFit.contain,
-                  width: double.infinity,
-                  placeholder: (_, __) => SizedBox(
-                    height: maxH * 0.7,
-                    child: const Center(child: CircularProgressIndicator()),
-                  ),
-                  errorWidget: (_, __, ___) => SizedBox(
-                    height: maxH * 0.7,
-                    child: Icon(
-                      Icons.broken_image_rounded,
-                      size: 48,
-                      color: scheme.onSurface.withOpacity(0.4),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        alignment: Alignment.bottomRight,
+        children: [
+          PageView.builder(
+            controller: _galeriaCtrl,
+            itemCount: totalFotos,
+            onPageChanged: (i) => setState(() => _paginaAtual = i),
+            itemBuilder: (_, i) {
+              final url = fotos[i];
+              final foto = Semantics(
+                label: 'Foto ${i + 1} de $totalFotos. Toque para ampliar.',
+                button: true,
+                child: GestureDetector(
+                  onTap: () => _abrirGaleria(e, i),
+                  child: CachedNetworkImage(
+                    imageUrl: url,
+                    fit: BoxFit.contain,
+                    width: double.infinity,
+                    placeholder: (_, __) => SizedBox(
+                      height: maxH * 0.7,
+                      child: const Center(child: CircularProgressIndicator()),
+                    ),
+                    errorWidget: (_, __, ___) => SizedBox(
+                      height: maxH * 0.7,
+                      child: Icon(
+                        Icons.broken_image_rounded,
+                        size: 48,
+                        color: scheme.onSurface.withOpacity(0.4),
+                      ),
                     ),
                   ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(10),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.6),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.zoom_out_map_rounded,
-                          color: Colors.white, size: 16),
-                      SizedBox(width: 6),
-                      Text(
-                        'Ampliar',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.3,
-                        ),
+              );
+              // Hero só na capa (1ª foto) pra casar com o tag do card.
+              return i == 0 ? Hero(tag: 'img_${e.id}', child: foto) : foto;
+            },
+          ),
+          if (totalFotos > 1) ...[
+            // Setas (telas largas / desktop / mouse)
+            Positioned.fill(
+              child: IgnorePointer(
+                ignoring: false,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _navArrow(
+                      icon: Icons.chevron_left_rounded,
+                      visivel: _paginaAtual > 0,
+                      onTap: () => _galeriaCtrl.previousPage(
+                        duration: const Duration(milliseconds: 250),
+                        curve: Curves.easeOut,
                       ),
-                    ],
-                  ),
+                    ),
+                    _navArrow(
+                      icon: Icons.chevron_right_rounded,
+                      visivel: _paginaAtual < totalFotos - 1,
+                      onTap: () => _galeriaCtrl.nextPage(
+                        duration: const Duration(milliseconds: 250),
+                        curve: Curves.easeOut,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
+            ),
+            // Indicador "1/N" no canto superior direito
+            Positioned(
+              top: 10,
+              right: 10,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.55),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.photo_library_rounded,
+                        color: Colors.white, size: 12),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${_paginaAtual + 1}/$totalFotos',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            // Dots indicator
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 10,
+              child: Center(child: _dots(totalFotos, _paginaAtual)),
+            ),
+          ],
+          Padding(
+            padding: const EdgeInsets.all(10),
+            child: GestureDetector(
+              onTap: () => _abrirGaleria(e, _paginaAtual),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.6),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.zoom_out_map_rounded,
+                        color: Colors.white, size: 16),
+                    SizedBox(width: 6),
+                    Text(
+                      'Ampliar',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _navArrow({
+    required IconData icon,
+    required bool visivel,
+    required VoidCallback onTap,
+  }) {
+    return AnimatedOpacity(
+      duration: const Duration(milliseconds: 180),
+      opacity: visivel ? 1 : 0,
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: Material(
+          color: Colors.black.withOpacity(0.45),
+          shape: const CircleBorder(),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: visivel ? onTap : null,
+            child: SizedBox(
+              width: 40,
+              height: 40,
+              child: Icon(icon, color: Colors.white, size: 24),
+            ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _dots(int total, int atual) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(total, (i) {
+        final ativo = i == atual;
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          margin: const EdgeInsets.symmetric(horizontal: 3),
+          width: ativo ? 18 : 6,
+          height: 6,
+          decoration: BoxDecoration(
+            color: ativo ? Colors.white : Colors.white.withOpacity(0.55),
+            borderRadius: BorderRadius.circular(999),
+            boxShadow: const [
+              BoxShadow(color: Colors.black38, blurRadius: 4),
+            ],
+          ),
+        );
+      }),
     );
   }
 
@@ -550,12 +679,14 @@ class _FichaScreenState extends State<FichaScreen>
 }
 
 class _GaleriaViewer extends StatefulWidget {
-  final String tag;
-  final String url;
+  final String heroTag;
+  final List<String> urls;
+  final int inicial;
   final String legenda;
   const _GaleriaViewer({
-    required this.tag,
-    required this.url,
+    required this.heroTag,
+    required this.urls,
+    required this.inicial,
     required this.legenda,
   });
 
@@ -570,6 +701,9 @@ class _GaleriaViewerState extends State<_GaleriaViewer>
   Animation<Matrix4>? _zoomTween;
   TapDownDetails? _doubleTapPos;
 
+  late final PageController _pageCtrl;
+  late int _idx;
+
   double _dragY = 0;
   bool _dragging = false;
 
@@ -578,6 +712,8 @@ class _GaleriaViewerState extends State<_GaleriaViewer>
   @override
   void initState() {
     super.initState();
+    _idx = widget.inicial.clamp(0, widget.urls.length - 1);
+    _pageCtrl = PageController(initialPage: _idx);
     _zoomAnim = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 220),
@@ -589,9 +725,14 @@ class _GaleriaViewerState extends State<_GaleriaViewer>
 
   @override
   void dispose() {
+    _pageCtrl.dispose();
     _zoomAnim.dispose();
     _ctrl.dispose();
     super.dispose();
+  }
+
+  void _resetZoom() {
+    _ctrl.value = Matrix4.identity();
   }
 
   void _toggleZoom() {
@@ -647,46 +788,67 @@ class _GaleriaViewerState extends State<_GaleriaViewer>
     final progress = (_dragY.abs() / 300).clamp(0.0, 1.0);
     final bgOpacity = 1.0 - progress * 0.7;
     final uiVisible = !_zoomed && !_dragging;
+    final total = widget.urls.length;
 
     return Scaffold(
       backgroundColor: Colors.black.withOpacity(bgOpacity),
       body: Stack(
         children: [
           Positioned.fill(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: _zoomed ? null : () => Navigator.of(context).pop(),
-              onDoubleTapDown: (d) => _doubleTapPos = d,
-              onDoubleTap: _toggleZoom,
-              onVerticalDragUpdate: _onDragUpdate,
-              onVerticalDragEnd: _onDragEnd,
-              child: Transform.translate(
-                offset: Offset(0, _dragY),
-                child: InteractiveViewer(
-                  transformationController: _ctrl,
-                  minScale: 1.0,
-                  maxScale: 5.0,
-                  child: Center(
-                    child: Hero(
-                      tag: widget.tag,
-                      child: CachedNetworkImage(
-                        imageUrl: widget.url,
-                        fit: BoxFit.contain,
-                        placeholder: (_, __) => const Center(
-                          child: CircularProgressIndicator(color: Colors.white),
-                        ),
-                        errorWidget: (_, __, ___) => const Icon(
-                          Icons.broken_image_rounded,
-                          color: Colors.white54,
-                          size: 64,
-                        ),
-                      ),
+            child: Transform.translate(
+              offset: Offset(0, _dragY),
+              child: PageView.builder(
+                controller: _pageCtrl,
+                // Quando está com zoom, bloqueia o swipe horizontal pra
+                // não conflitar com o pan da imagem.
+                physics: _zoomed ? const NeverScrollableScrollPhysics() : null,
+                itemCount: total,
+                onPageChanged: (i) {
+                  HapticFeedback.selectionClick();
+                  _resetZoom();
+                  setState(() => _idx = i);
+                },
+                itemBuilder: (_, i) {
+                  final url = widget.urls[i];
+                  final img = CachedNetworkImage(
+                    imageUrl: url,
+                    fit: BoxFit.contain,
+                    placeholder: (_, __) => const Center(
+                      child:
+                          CircularProgressIndicator(color: Colors.white),
                     ),
-                  ),
-                ),
+                    errorWidget: (_, __, ___) => const Icon(
+                      Icons.broken_image_rounded,
+                      color: Colors.white54,
+                      size: 64,
+                    ),
+                  );
+                  final imgComHero = i == 0
+                      ? Hero(tag: widget.heroTag, child: img)
+                      : img;
+                  return GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: _zoomed
+                        ? null
+                        : () => Navigator.of(context).pop(),
+                    onDoubleTapDown: (d) => _doubleTapPos = d,
+                    onDoubleTap: _toggleZoom,
+                    onVerticalDragUpdate: _onDragUpdate,
+                    onVerticalDragEnd: _onDragEnd,
+                    child: i == _idx
+                        ? InteractiveViewer(
+                            transformationController: _ctrl,
+                            minScale: 1.0,
+                            maxScale: 5.0,
+                            child: Center(child: imgComHero),
+                          )
+                        : Center(child: imgComHero),
+                  );
+                },
               ),
             ),
           ),
+          // Botão fechar
           Positioned(
             top: media.padding.top + 8,
             right: 8,
@@ -711,6 +873,36 @@ class _GaleriaViewerState extends State<_GaleriaViewer>
               ),
             ),
           ),
+          // Contador "1/N"
+          if (total > 1)
+            Positioned(
+              top: media.padding.top + 16,
+              left: 0,
+              right: 0,
+              child: AnimatedOpacity(
+                opacity: uiVisible ? 1 : 0,
+                duration: const Duration(milliseconds: 150),
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.55),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      '${_idx + 1} / $total',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          // Legenda na base
           Positioned(
             left: 16,
             right: 16,

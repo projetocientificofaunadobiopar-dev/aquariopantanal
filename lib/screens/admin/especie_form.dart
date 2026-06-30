@@ -65,6 +65,11 @@ class _EspecieFormState extends State<EspecieForm>
   String? _imagemUrl;
   Uint8List? _novoBytes;
   String? _novoNome;
+
+  // Galeria: fotos adicionais além da capa.
+  late List<String> _galeriaExistente;
+  final List<_FotoPendente> _galeriaNovas = [];
+
   bool _saving = false;
   String? _erro;
 
@@ -107,6 +112,7 @@ class _EspecieFormState extends State<EspecieForm>
     _status = e?.statusEnum;
     _classe = e?.classeEnum;
     _imagemUrl = e?.imagemUrl;
+    _galeriaExistente = List<String>.from(e?.imagens ?? const []);
   }
 
   @override
@@ -139,6 +145,24 @@ class _EspecieFormState extends State<EspecieForm>
     });
   }
 
+  Future<void> _adicionarFotoGaleria() async {
+    final picker = ImagePicker();
+    final x = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 2048,
+      imageQuality: 92,
+    );
+    if (x == null) return;
+    final bytes = await x.readAsBytes();
+    if (!mounted) return;
+    final cropped = await PhotoCropperPage.abrir(context, bytes);
+    if (cropped == null) return;
+    final base = x.name.replaceAll(RegExp(r'\.[^.]+$'), '');
+    setState(() {
+      _galeriaNovas.add(_FotoPendente(bytes: cropped, name: '$base.png'));
+    });
+  }
+
   Future<void> _salvar(Strings s) async {
     if (!_form.currentState!.validate()) {
       _tab.animateTo(0); // PT é onde estão os obrigatórios
@@ -163,6 +187,23 @@ class _EspecieFormState extends State<EspecieForm>
           contentType: contentType,
         );
       }
+      // Upload das fotos novas da galeria
+      final novasUrls = <String>[];
+      for (final f in _galeriaNovas) {
+        final lower = f.name.toLowerCase();
+        final contentType = lower.endsWith('.webp')
+            ? 'image/webp'
+            : lower.endsWith('.png')
+                ? 'image/png'
+                : 'image/jpeg';
+        final u = await _svc.uploadImagem(
+          bytes: f.bytes,
+          filename: f.name,
+          contentType: contentType,
+        );
+        novasUrls.add(u);
+      }
+      final galeriaFinal = [..._galeriaExistente, ...novasUrls];
       String? n(TextEditingController c) =>
           c.text.trim().isEmpty ? null : c.text.trim();
       final e = Especie(
@@ -178,6 +219,7 @@ class _EspecieFormState extends State<EspecieForm>
         nichoEcologicoEn: _nichoEn.text.trim(),
         nichoEcologicoEs: n(_nichoEs),
         imagemUrl: url,
+        imagens: galeriaFinal,
         statusConservacao: _status?.codigo,
         classe: _classe?.codigo,
         familia: n(_familia),
@@ -397,6 +439,131 @@ class _EspecieFormState extends State<EspecieForm>
           icon: const Icon(Icons.image_outlined),
           label: Text(s.selecionarImagem),
         ),
+        const SizedBox(height: 24),
+        _secao('Galeria (fotos adicionais)'),
+        _galeriaThumbs(),
+        const SizedBox(height: 10),
+        OutlinedButton.icon(
+          onPressed: _adicionarFotoGaleria,
+          icon: const Icon(Icons.add_photo_alternate_outlined),
+          label: const Text('Adicionar foto'),
+        ),
+      ],
+    );
+  }
+
+  Widget _galeriaThumbs() {
+    final scheme = Theme.of(context).colorScheme;
+    final total = _galeriaExistente.length + _galeriaNovas.length;
+    if (total == 0) {
+      return Container(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+        decoration: BoxDecoration(
+          color: scheme.surfaceContainerHighest.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: scheme.onSurface.withOpacity(0.08)),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.photo_library_outlined,
+                color: scheme.onSurface.withOpacity(0.5), size: 18),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Nenhuma foto adicional. A capa acima já é a 1ª da galeria.',
+                style: TextStyle(
+                  color: scheme.onSurface.withOpacity(0.65),
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    return SizedBox(
+      height: 96,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: total,
+        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        itemBuilder: (_, i) {
+          final isNova = i >= _galeriaExistente.length;
+          final novaIdx = i - _galeriaExistente.length;
+          return _thumb(
+            child: isNova
+                ? Image.memory(_galeriaNovas[novaIdx].bytes, fit: BoxFit.cover)
+                : Image.network(_galeriaExistente[i], fit: BoxFit.cover),
+            badge: isNova ? 'NOVA' : null,
+            onRemove: () => setState(() {
+              if (isNova) {
+                _galeriaNovas.removeAt(novaIdx);
+              } else {
+                _galeriaExistente.removeAt(i);
+              }
+            }),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _thumb({
+    required Widget child,
+    String? badge,
+    required VoidCallback onRemove,
+  }) {
+    return Stack(
+      children: [
+        Container(
+          width: 96,
+          height: 96,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: child,
+        ),
+        Positioned(
+          top: 4,
+          right: 4,
+          child: Material(
+            color: Colors.black.withOpacity(0.6),
+            shape: const CircleBorder(),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: onRemove,
+              child: const Padding(
+                padding: EdgeInsets.all(4),
+                child: Icon(Icons.close_rounded,
+                    color: Colors.white, size: 16),
+              ),
+            ),
+          ),
+        ),
+        if (badge != null)
+          Positioned(
+            bottom: 4,
+            left: 4,
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.green.withOpacity(0.9),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                badge,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.4,
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -563,4 +730,10 @@ class _EspecieFormState extends State<EspecieForm>
       onChanged: (v) => setState(() => _status = v),
     );
   }
+}
+
+class _FotoPendente {
+  final Uint8List bytes;
+  final String name;
+  _FotoPendente({required this.bytes, required this.name});
 }

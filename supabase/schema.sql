@@ -14,6 +14,7 @@ create table if not exists public.especies (
   nicho_ecologico_pt text not null,
   nicho_ecologico_en text not null,
   imagem_url text,
+  imagens text[] not null default '{}',
   status_conservacao text check (status_conservacao is null or status_conservacao in
     ('LC','NT','VU','EN','CR','EW','EX','DD')),
   classe text check (classe is null or classe in

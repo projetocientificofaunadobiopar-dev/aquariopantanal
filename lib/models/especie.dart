@@ -98,6 +98,7 @@ class Especie {
   final String? nichoEcologicoEs;
 
   final String? imagemUrl;
+  final List<String> imagens;
   final String? statusConservacao;
   final String? classe;
   final String? familia;
@@ -136,6 +137,7 @@ class Especie {
     required this.nichoEcologicoEn,
     this.nichoEcologicoEs,
     this.imagemUrl,
+    this.imagens = const [],
     this.statusConservacao,
     this.classe,
     this.familia,
@@ -170,6 +172,11 @@ class Especie {
         nichoEcologicoEn: (m['nicho_ecologico_en'] ?? '') as String,
         nichoEcologicoEs: m['nicho_ecologico_es'] as String?,
         imagemUrl: m['imagem_url'] as String?,
+        imagens: (m['imagens'] as List?)
+                ?.map((e) => e.toString())
+                .where((s) => s.isNotEmpty)
+                .toList() ??
+            const [],
         statusConservacao: m['status_conservacao'] as String?,
         classe: m['classe'] as String?,
         familia: m['familia'] as String?,
@@ -202,6 +209,7 @@ class Especie {
         'nicho_ecologico_en': nichoEcologicoEn,
         'nicho_ecologico_es': nichoEcologicoEs,
         'imagem_url': imagemUrl,
+        'imagens': imagens,
         'status_conservacao': statusConservacao,
         'classe': classe,
         'familia': familia,
@@ -274,6 +282,16 @@ class Especie {
   ClasseTaxonomica? get classeEnum => ClasseTaxonomica.fromCodigo(classe);
   StatusConservacao? get statusEnum =>
       StatusConservacao.fromCodigo(statusConservacao);
+
+  /// Lista completa de fotos (capa primeiro, depois adicionais), sem nulos/vazios.
+  List<String> get galeria {
+    final out = <String>[];
+    if (imagemUrl != null && imagemUrl!.trim().isNotEmpty) out.add(imagemUrl!);
+    for (final u in imagens) {
+      if (u.trim().isNotEmpty) out.add(u);
+    }
+    return out;
+  }
 
   // ===== Completude por idioma (admin) =====
   bool get temImagem => imagemUrl != null && imagemUrl!.isNotEmpty;
