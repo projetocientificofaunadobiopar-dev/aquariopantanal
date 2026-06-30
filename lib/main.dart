@@ -5,8 +5,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'config/supabase_config.dart';
 import 'providers/auth_provider.dart';
 import 'providers/locale_provider.dart';
+import 'providers/onboarding_provider.dart';
 import 'providers/text_scale_provider.dart';
 import 'providers/theme_provider.dart';
+import 'providers/visitas_provider.dart';
 import 'routes/app_router.dart';
 import 'theme/app_theme.dart';
 
@@ -34,10 +36,15 @@ class BioparqueApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => TextScaleProvider()),
+        ChangeNotifierProvider(create: (_) => OnboardingProvider()..carregar()),
+        ChangeNotifierProvider(create: (_) => VisitasProvider()..carregar()),
       ],
       child: Builder(
         builder: (ctx) {
-          final router = buildRouter(ctx.read<AuthProvider>());
+          final router = buildRouter(
+            ctx.read<AuthProvider>(),
+            ctx.read<OnboardingProvider>(),
+          );
           final mode = ctx.watch<ThemeProvider>().mode;
           final scale = ctx.watch<TextScaleProvider>().scale;
           return MaterialApp.router(

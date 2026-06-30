@@ -3,12 +3,14 @@ import 'package:go_router/go_router.dart';
 
 import '../models/especie.dart';
 import '../providers/auth_provider.dart';
+import '../providers/onboarding_provider.dart';
 import '../screens/admin/admin_dashboard.dart';
 import '../screens/admin/especie_form.dart';
 import '../screens/fauna_screen.dart';
 import '../screens/ficha_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/login_screen.dart';
+import '../screens/onboarding_screen.dart';
 import '../screens/scan_screen.dart';
 import '../screens/sobre_screen.dart';
 
@@ -36,22 +38,36 @@ CustomTransitionPage<T> _fade<T>(Widget child, GoRouterState st) {
   );
 }
 
-GoRouter buildRouter(AuthProvider auth) {
+GoRouter buildRouter(AuthProvider auth, OnboardingProvider onb) {
   return GoRouter(
     initialLocation: '/',
-    refreshListenable: auth,
+    refreshListenable: Listenable.merge([auth, onb]),
     redirect: (ctx, state) {
       final logged = auth.isLogged;
       final path = state.uri.path;
       final inAdmin = path.startsWith('/admin');
       if (inAdmin && !logged) return '/login';
       if (path == '/login' && logged) return '/admin';
+
+      // 1ª abertura → onboarding. Não força em /especie/:slug (visitante
+      // que escaneou QR direto da placa do aquário entra direto na ficha).
+      if (!onb.carregado) return null;
+      final exceto = path.startsWith('/onboarding') ||
+          path.startsWith('/especie/') ||
+          path.startsWith('/ficha/') ||
+          inAdmin ||
+          path == '/login';
+      if (!onb.done && !exceto) return '/onboarding';
       return null;
     },
     routes: [
       GoRoute(
         path: '/',
         pageBuilder: (_, st) => _fade(const HomeScreen(), st),
+      ),
+      GoRoute(
+        path: '/onboarding',
+        pageBuilder: (_, st) => _fade(const OnboardingScreen(), st),
       ),
       GoRoute(
         path: '/fauna',

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 import '../models/especie.dart';
 import '../providers/locale_provider.dart';
+import '../providers/visitas_provider.dart';
 import 'classe_icon.dart';
 import 'hero_image.dart';
 
@@ -30,6 +32,9 @@ class _EspecieCardState extends State<EspecieCard> {
     final classe = widget.especie.classeEnum;
     final scheme = Theme.of(context).colorScheme;
     final fb = widget.especie.houveFallback(widget.loc);
+    final visitada = context.watch<VisitasProvider>().foiVisitada(
+          widget.especie.id,
+        );
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -110,6 +115,29 @@ class _EspecieCardState extends State<EspecieCard> {
                     top: 12,
                     right: 12,
                     child: ClasseAvatar(classe: classe, size: 32),
+                  ),
+                if (visitada)
+                  Positioned(
+                    top: 50,
+                    right: 12,
+                    child: Container(
+                      width: 26,
+                      height: 26,
+                      decoration: BoxDecoration(
+                        color: Colors.green,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.green.withOpacity(0.5),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                      child: const Icon(Icons.check_rounded,
+                          color: Colors.white, size: 14),
+                    ),
                   ),
                 if (fb)
                   Positioned(

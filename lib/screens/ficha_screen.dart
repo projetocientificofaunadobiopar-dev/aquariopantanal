@@ -4,9 +4,13 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 import '../i18n/strings.dart';
 import '../models/especie.dart';
 import '../providers/locale_provider.dart';
+import '../providers/visitas_provider.dart';
 import '../services/supabase_service.dart';
 import '../services/tts_service.dart';
 import '../widgets/classe_icon.dart';
@@ -38,7 +42,20 @@ class _FichaScreenState extends State<FichaScreen>
       duration: const Duration(milliseconds: 1200),
     )..repeat(reverse: true);
     _e = widget.inicial;
-    if (_e == null) _carregar();
+    if (_e == null) {
+      _carregar();
+    } else {
+      _marcarVisitada();
+    }
+  }
+
+  void _marcarVisitada() {
+    final id = _e?.id;
+    if (id == null || id.isEmpty || id.startsWith('demo-')) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<VisitasProvider>().marcarVisitada(id);
+    });
   }
 
   @override
@@ -54,7 +71,10 @@ class _FichaScreenState extends State<FichaScreen>
       final e = await SupabaseService()
           .buscarPorSlugOuId(widget.slugOrId)
           .timeout(const Duration(seconds: 8));
-      if (mounted) setState(() => _e = e);
+      if (mounted) {
+        setState(() => _e = e);
+        _marcarVisitada();
+      }
     } catch (err) {
       if (mounted) setState(() => _erro = err.toString());
     }
@@ -94,6 +114,19 @@ class _FichaScreenState extends State<FichaScreen>
       setState(() => _falando = true);
       await TtsService.instance.falar(_textoParaTts(e, loc, s), loc: ttsLoc);
     }
+  }
+
+  Future<void> _compartilhar(Especie e, AppLocale loc) async {
+    HapticFeedback.lightImpact();
+    final nome = e.nomePopular(loc);
+    final cientifico = e.nomeCientifico;
+    final url = Uri.base.toString();
+    final texto = loc == AppLocale.pt
+        ? 'Conheci o $nome ($cientifico) no Bioparque Pantanal!\n$url'
+        : loc == AppLocale.en
+            ? 'I just learned about the $nome ($cientifico) at Bioparque Pantanal!\n$url'
+            : '¡Conocí al $nome ($cientifico) en el Bioparque Pantanal!\n$url';
+    await Share.share(texto, subject: nome);
   }
 
   void _abrirGaleria(Especie e, int indiceInicial) {
@@ -155,8 +188,17 @@ class _FichaScreenState extends State<FichaScreen>
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => context.canPop() ? context.pop() : context.go('/'),
         ),
-        actions: const [
-          Padding(
+        actions: [
+          IconButton(
+            tooltip: loc == AppLocale.pt
+                ? 'Compartilhar'
+                : loc == AppLocale.en
+                    ? 'Share'
+                    : 'Compartir',
+            icon: const Icon(Icons.ios_share_rounded),
+            onPressed: () => _compartilhar(e, loc),
+          ),
+          const Padding(
             padding: EdgeInsets.only(right: 8),
             child: Center(child: LangSwitch()),
           ),
@@ -201,6 +243,8 @@ class _FichaScreenState extends State<FichaScreen>
               _bloco(context, s.curiosidade, e.curiosidade(loc)!,
                   Icons.lightbulb_rounded, scheme.secondary,
                   destaque: true),
+            if (status != null && _ameacado(status))
+              _cardConservacao(loc, status),
           ],
         ),
       ),
@@ -490,6 +534,109 @@ class _FichaScreenState extends State<FichaScreen>
         ],
       ],
     );
+  }
+
+  bool _ameacado(StatusConservacao st) =>
+      st == StatusConservacao.vu ||
+      st == StatusConservacao.en ||
+      st == StatusConservacao.cr ||
+      st == StatusConservacao.ew ||
+      st == StatusConservacao.ex;
+
+  Widget _cardConservacao(AppLocale loc, StatusConservacao st) {
+    final scheme = Theme.of(context).colorScheme;
+    final cor = Color(st.cor);
+    final titulo = loc == AppLocale.pt
+        ? 'Essa espécie precisa de você'
+        : loc == AppLocale.en
+            ? 'This species needs you'
+            : 'Esta especie te necesita';
+    final texto = loc == AppLocale.pt
+        ? 'Classificada como ${st.label(loc)} pela IUCN. Apoie organizações que trabalham pela conservação no Pantanal — ICMBio, WWF-Brasil e SOS Pantanal.'
+        : loc == AppLocale.en
+            ? 'Classified as ${st.label(loc)} by IUCN. Support organizations working for conservation in the Pantanal — ICMBio, WWF-Brazil and SOS Pantanal.'
+            : 'Clasificada como ${st.label(loc)} por la UICN. Apoya las organizaciones que trabajan por la conservación en el Pantanal — ICMBio, WWF-Brasil y SOS Pantanal.';
+    final cta = loc == AppLocale.pt
+        ? 'Como ajudar'
+        : loc == AppLocale.en
+            ? 'How to help'
+            : 'Cómo ayudar';
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [cor.withOpacity(0.15), cor.withOpacity(0.06)],
+          ),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: cor.withOpacity(0.35), width: 1),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: cor.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(Icons.favorite_rounded, color: cor, size: 20),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    titulo,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: scheme.onSurface,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              texto,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: scheme.onSurface.withOpacity(0.85),
+                    height: 1.4,
+                  ),
+            ),
+            const SizedBox(height: 14),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: FilledButton.tonalIcon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: cor.withOpacity(0.18),
+                  foregroundColor: cor,
+                ),
+                onPressed: () => _abrirAjuda(loc),
+                icon: const Icon(Icons.open_in_new_rounded, size: 16),
+                label: Text(cta),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _abrirAjuda(AppLocale loc) async {
+    // Lista de organizações brasileiras de conservação.
+    final url = Uri.parse(
+      loc == AppLocale.pt
+          ? 'https://www.sospantanal.org.br/como-ajudar/'
+          : 'https://www.sospantanal.org.br/en/how-to-help/',
+    );
+    await launchUrl(url, mode: LaunchMode.externalApplication);
   }
 
   Widget _fallbackBanner(BuildContext context, Strings s) {

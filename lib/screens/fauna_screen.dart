@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +8,7 @@ import 'package:provider/provider.dart';
 import '../i18n/strings.dart';
 import '../models/especie.dart';
 import '../providers/locale_provider.dart';
+import '../providers/visitas_provider.dart';
 import '../services/supabase_service.dart';
 import '../theme/liquid_glass.dart';
 import '../widgets/app_drawer.dart';
@@ -158,7 +161,14 @@ class _FaunaScreenState extends State<FaunaScreen> {
                   child: CustomScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
                     slivers: [
-                      _Header(s: s, total: all.length),
+                      _Header(s: s, total: all.length, loc: loc),
+                      if (all.isNotEmpty)
+                        SliverToBoxAdapter(
+                          child: _CarrosselCuriosidades(
+                            especies: all,
+                            loc: loc,
+                          ),
+                        ),
                       SliverPadding(
                         padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
                         sliver: SliverToBoxAdapter(
@@ -298,11 +308,13 @@ class _FaunaScreenState extends State<FaunaScreen> {
 class _Header extends StatelessWidget {
   final Strings s;
   final int total;
-  const _Header({required this.s, required this.total});
+  final AppLocale loc;
+  const _Header({required this.s, required this.total, required this.loc});
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final visitadas = context.watch<VisitasProvider>().total;
     return SliverToBoxAdapter(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
@@ -349,21 +361,58 @@ class _Header extends StatelessWidget {
                   ),
                   if (total > 0) ...[
                     const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: scheme.primary.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        '$total ${s.especies}',
-                        style: TextStyle(
-                          color: scheme.primary,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 12,
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: scheme.primary.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            '$total ${s.especies}',
+                            style: TextStyle(
+                              color: scheme.primary,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 12,
+                            ),
+                          ),
                         ),
-                      ),
+                        if (visitadas > 0)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(999),
+                              border: Border.all(
+                                  color: Colors.green.withOpacity(0.4)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.check_circle_rounded,
+                                    size: 14, color: Colors.green),
+                                const SizedBox(width: 4),
+                                Text(
+                                  loc == AppLocale.pt
+                                      ? '$visitadas/$total visitadas'
+                                      : loc == AppLocale.en
+                                          ? '$visitadas/$total visited'
+                                          : '$visitadas/$total visitadas',
+                                  style: const TextStyle(
+                                    color: Colors.green,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
                     ),
                   ],
                 ],
@@ -560,6 +609,180 @@ class _ErrorState extends StatelessWidget {
             const SizedBox(height: 12),
             Text(msg, textAlign: TextAlign.center),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Carrossel topo do catálogo: cicla curiosidades das espécies que têm
+/// o campo preenchido. Tap → ficha. Auto-avança a cada 6s.
+class _CarrosselCuriosidades extends StatefulWidget {
+  final List<Especie> especies;
+  final AppLocale loc;
+  const _CarrosselCuriosidades({
+    required this.especies,
+    required this.loc,
+  });
+
+  @override
+  State<_CarrosselCuriosidades> createState() =>
+      _CarrosselCuriosidadesState();
+}
+
+class _CarrosselCuriosidadesState extends State<_CarrosselCuriosidades> {
+  final PageController _ctrl = PageController(viewportFraction: 0.92);
+  int _idx = 0;
+  Timer? _timer;
+  late List<Especie> _comCuriosidade;
+
+  @override
+  void initState() {
+    super.initState();
+    _filtrar();
+    _agendarAuto();
+  }
+
+  @override
+  void didUpdateWidget(covariant _CarrosselCuriosidades old) {
+    super.didUpdateWidget(old);
+    if (old.especies != widget.especies || old.loc != widget.loc) {
+      _filtrar();
+    }
+  }
+
+  void _filtrar() {
+    _comCuriosidade = widget.especies
+        .where((e) => (e.curiosidade(widget.loc) ?? '').trim().isNotEmpty)
+        .toList();
+  }
+
+  void _agendarAuto() {
+    _timer?.cancel();
+    if (_comCuriosidade.length < 2) return;
+    _timer = Timer.periodic(const Duration(seconds: 6), (_) {
+      if (!mounted || !_ctrl.hasClients) return;
+      final prox = (_idx + 1) % _comCuriosidade.length;
+      _ctrl.animateToPage(
+        prox,
+        duration: const Duration(milliseconds: 450),
+        curve: Curves.easeInOutCubic,
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  String _labelVoceSabia(AppLocale loc) {
+    switch (loc) {
+      case AppLocale.pt:
+        return 'Você sabia?';
+      case AppLocale.en:
+        return 'Did you know?';
+      case AppLocale.es:
+        return '¿Sabías que?';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_comCuriosidade.isEmpty) return const SizedBox.shrink();
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 0, 0, 16),
+      child: SizedBox(
+        height: 140,
+        child: PageView.builder(
+          controller: _ctrl,
+          onPageChanged: (i) => setState(() => _idx = i),
+          itemCount: _comCuriosidade.length,
+          itemBuilder: (_, i) {
+            final e = _comCuriosidade[i];
+            final texto = e.curiosidade(widget.loc)!;
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Material(
+                color: scheme.secondaryContainer.withOpacity(0.65),
+                borderRadius: BorderRadius.circular(18),
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  onTap: () {
+                    final slug = e.slug ?? e.id;
+                    context.push('/especie/$slug', extra: e);
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: scheme.secondary.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Icon(Icons.lightbulb_rounded,
+                              color: scheme.secondary, size: 26),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    _labelVoceSabia(widget.loc),
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w800,
+                                      color: scheme.secondary,
+                                      letterSpacing: 0.6,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Flexible(
+                                    child: Text(
+                                      '· ${e.nomePopular(widget.loc)}',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: scheme.onSurface
+                                            .withOpacity(0.65),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                texto,
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  height: 1.35,
+                                  color: scheme.onSurface,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
